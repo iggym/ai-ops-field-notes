@@ -1,0 +1,11 @@
+{
+  "site": {
+    "repo_name": "ai-ops-field-notes",
+    "title": "AI Ops Field Notes",
+    "tagline": "Dispatches from the pager, while it's still buzzing.",
+    "base_url": "https://iggym.github.io/ai-ops-field-notes/",
+    "audience": "Practitioners and on-call engineers",
+    "description": "Short, sharp incident dispatches from AI systems in production — top-of-funnel, war-story shaped, no lessons-learned headers."
+  },
+  "articles": []
+}
