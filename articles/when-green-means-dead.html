@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>When Green Means Dead — AI Ops Field Notes</title>
+<meta name="description" content="An incident dispatch on invisible LLM failures: 200 OK responses that are semantically wrong, and why traditional monitoring is structurally blind to them." />
+<style>
+  :root{
+    --bg:#0a0e14;
+    --bg-2:#0f141c;
+    --panel:#131a24;
+    --panel-2:#1a2230;
+    --ink:#e6edf3;
+    --ink-dim:#9aa7b5;
+    --ink-faint:#5c6877;
+    --accent:#ffb347;
+    --accent-2:#ff6b4a;
+    --good:#3fb950;
+    --bad:#f85149;
+    --warn:#d29922;
+    --line:#1f2937;
+    --line-soft:#161d27;
+    --glass:rgba(15,20,28,0.72);
+    --mono:'JetBrains Mono','SF Mono',Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Inter',Segoe UI,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:var(--sans);line-height:1.65;font-size:17px;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(circle at 12% -10%, rgba(255,179,71,0.07), transparent 40%),
+      radial-gradient(circle at 90% 0%, rgba(255,107,74,0.06), transparent 35%),
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size:auto,auto,48px 48px,48px 48px;
+    background-position:0 0,0 0,-1px -1px,-1px -1px;
+  }
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* Progress bar */
+  #progress{
+    position:fixed;top:0;left:0;height:3px;width:0%;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    z-index:1000;transition:width .1s linear;
+    box-shadow:0 0 12px rgba(255,179,71,0.6);
+  }
+
+  /* Topbar */
+  #topbar{
+    position:sticky;top:0;z-index:900;
+    background:var(--glass);
+    backdrop-filter:blur(14px) saturate(160%);
+    -webkit-backdrop-filter:blur(14px) saturate(160%);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    max-width:1280px;margin:0 auto;
+    padding:10px 20px;display:flex;align-items:center;gap:16px;
+  }
+  .brand{
+    font-weight:700;letter-spacing:-0.01em;font-size:15px;
+    color:var(--ink);display:flex;align-items:center;gap:8px;
+  }
+  .brand .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--accent);box-shadow:0 0 10px var(--accent);
+  }
+  .breadcrumb{
+    font-family:var(--mono);font-size:12px;color:var(--ink-faint);
+    display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  }
+  .breadcrumb span.sep{color:var(--ink-faint);opacity:0.5}
+  .breadcrumb a{color:var(--ink-dim)}
+  .topbar-spacer{flex:1}
+  .reading-time{
+    font-family:var(--mono);font-size:12px;color:var(--ink-dim);
+    padding:4px 10px;border:1px solid var(--line);border-radius:999px;
+    background:var(--panel);
+  }
+  .reading-time::before{
+    content:'●';color:var(--good);margin-right:6px;font-size:10px;
+  }
+  .hamburger{
+    display:none;background:transparent;border:1px solid var(--line);
+    color:var(--ink);padding:6px 10px;border-radius:6px;cursor:pointer;
+    font-family:var(--mono);font-size:13px;
+  }
+
+  /* Layout */
+  .layout{
+    max-width:1280px;margin:0 auto;padding:32px 20px 80px;
+    display:grid;grid-template-columns:1fr 320px;gap:48px;
+  }
+  .article-col{min-width:0}
+  .side-col{position:sticky;top:80px;align-self:start;max-height:calc(100vh - 96px);overflow:auto}
+  .side-col::-webkit-scrollbar{width:6px}
+  .side-col::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+  /* Hero */
+  .hero{margin-bottom:32px;border-bottom:1px solid var(--line);padding-bottom:28px}
+  .kicker{
+    font-family:var(--mono);font-size:12px;letter-spacing:0.08em;
+    color:var(--accent);text-transform:uppercase;margin-bottom:14px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .kicker .pulse{
+    width:7px;height:7px;border-radius:50%;background:var(--accent-2);
+    animation:pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,107,74,0.6)}
+    50%{opacity:0.5;box-shadow:0 0 0 8px rgba(255,107,74,0)}
+  }
+  h1.hero-title{
+    font-size:clamp(2.1rem,5vw,3.1rem);
+    line-height:1.08;letter-spacing:-0.025em;
+    margin:0 0 16px;font-weight:800;
+    background:linear-gradient(180deg,#fff 0%,#c9d1d9 100%);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+  }
+  .hero-meta{
+    display:flex;flex-wrap:wrap;gap:14px;align-items:center;
+    font-family:var(--mono);font-size:12px;color:var(--ink-faint);
+  }
+  .hero-meta .tag{
+    padding:3px 9px;border:1px solid var(--line);border-radius:4px;
+    background:var(--panel);color:var(--ink-dim);
+  }
+
+  /* Article body */
+  h2.sec{
+    font-size:1.5rem;font-weight:700;letter-spacing:-0.015em;
+    margin:42px 0 14px;color:var(--ink);
+    display:flex;align-items:center;gap:12px;
+  }
+  h2.sec .num{
+    font-family:var(--mono);font-size:13px;color:var(--accent);
+    border:1px solid var(--accent);border-radius:4px;
+    padding:2px 8px;font-weight:500;
+  }
+  p{margin:0 0 18px;color:var(--ink-dim)}
+  p strong{color:var(--ink);font-weight:600}
+  .article-col p code, .article-col li code{
+    font-family:var(--mono);font-size:0.88em;
+    background:var(--panel);padding:1px 6px;border-radius:4px;
+    color:var(--accent);border:1px solid var(--line);
+  }
+  .lede{font-size:1.12rem;color:var(--ink);line-height:1.55}
+
+  /* Pull quote */
+  .pullquote{
+    margin:36px 0;padding:24px 28px;
+    border-left:3px solid var(--accent);
+    background:linear-gradient(90deg, rgba(255,179,71,0.06), transparent 60%);
+    font-size:1.25rem;line-height:1.5;color:var(--ink);
+    font-weight:500;letter-spacing:-0.01em;
+    position:relative;
+  }
+  .pullquote::before{
+    content:'"';position:absolute;top:-8px;left:18px;
+    font-size:3rem;color:var(--accent);opacity:0.25;
+    font-family:Georgia,serif;line-height:1;
+  }
+
+  /* Spectrum widget */
+  .spectrum{
+    margin:36px 0;border:1px solid var(--line);border-radius:10px;
+    background:var(--panel);overflow:hidden;
+  }
+  .spectrum-head{
+    padding:14px 18px;border-bottom:1px solid var(--line);
+    font-family:var(--mono);font-size:12px;color:var(--ink-dim);
+    text-transform:uppercase;letter-spacing:0.06em;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .spectrum-toggle{
+    display:flex;gap:4px;background:var(--bg-2);padding:3px;border-radius:6px;
+    border:1px solid var(--line);
+  }
+  .spectrum-toggle button{
+    background:transparent;border:0;color:var(--ink-faint);
+    padding:5px 12px;font-size:12px;cursor:pointer;border-radius:4px;
+    font-family:var(--mono);transition:all .15s;
+  }
+  .spectrum-toggle button.active{
+    background:var(--accent);color:#1a1208;font-weight:600;
+  }
+  .spectrum-body{padding:24px 22px;min-height:140px;display:flex;flex-direction:column;justify-content:center}
+  .spectrum-label{
+    font-family:var(--mono);font-size:11px;color:var(--ink-faint);
+    text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;
+  }
+  .spectrum-content{font-size:1.02rem;line-height:1.55;color:var(--ink)}
+  .spectrum-content .bad{color:var(--bad)}
+  .spectrum-content .good{color:var(--good)}
+  .spectrum-content .warn{color:var(--warn)}
+
+  /* Timeline / Telemetry visualizer */
+  .timeline-box{
+    margin:36px 0;border:1px solid var(--line);border-radius:10px;
+    background:var(--panel);overflow:hidden;
+  }
+  .timeline-head{
+    padding:14px 18px;border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;
+  }
+  .timeline-head .title{
+    font-family:var(--mono);font-size:12px;color:var(--ink-dim);
+    text-transform:uppercase;letter-spacing:0.06em;
+  }
+  .timeline-legend{display:flex;gap:14px;font-family:var(--mono);font-size:11px;color:var(--ink-faint)}
+  .timeline-legend .swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  .timeline-svg-wrap{padding:18px;overflow-x:auto}
+  .timeline-svg{display:block;min-width:640px;width:100%;height:auto}
+  .tl-event{cursor:pointer}
+  .tl-event:hover circle.tl-dot{r:9}
+  .tl-event .tl-label{font-family:var(--mono);font-size:10px;fill:var(--ink-faint)}
+  .tl-event.active circle.tl-dot{r:9;stroke:var(--accent);stroke-width:2}
+  .tl-event.active .tl-label{fill:var(--accent)}
+
+  .telemetry-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+    background:var(--line);border-top:1px solid var(--line);
+  }
+  .tele-cell{
+    background:var(--panel);padding:12px 14px;
+  }
+  .tele-cell .k{font-family:var(--mono);font-size:10px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
+  .tele-cell .v{font-family:var(--mono);font-size:15px;color:var(--ink);font-weight:600}
+  .tele-cell .v.bad{color:var(--bad)}
+  .tele-cell .v.good{color:var(--good)}
+  .tele-cell .v.warn{color:var(--warn)}
+
+  .event-detail{
+    padding:16px 18px;border-top:1px solid var(--line);
+    background:var(--bg-2);min-height:80px;
+  }
+  .event-detail .ts{font-family:var(--mono);font-size:11px;color:var(--accent);margin-bottom:6px}
+  .event-detail .title{font-weight:600;color:var(--ink);margin-bottom:6px}
+  .event-detail .desc{font-size:14px;color:var(--ink-dim);line-height:1.5}
+
+  /* Matrix card */
+  .matrix{
+    margin:36px 0;border:1px solid var(--line);border-radius:10px;
+    background:var(--panel);overflow:hidden;
+  }
+  .matrix-head{padding:14px 18px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.06em}
+  .matrix-row{
+    display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);
+    border-bottom:1px solid var(--line);
+  }
+  .matrix-row:last-child{border-bottom:0}
+  .matrix-cell{padding:14px 16px;background:var(--panel)}
+  .matrix-cell.sym{background:var(--bg-2)}
+  .matrix-cell .label{font-family:var(--mono);font-size:10px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px}
+  .matrix-cell .val{font-size:14px;color:var(--ink);line-height:1.45}
+  .matrix-cell.sym .val{color:var(--bad)}
+  .matrix-cell.rt .val{color:var(--good)}
+
+  /* Share block */
+  .share-block{
+    margin:36px 0;padding:20px;border:1px solid var(--line);border-radius:10px;
+    background:linear-gradient(135deg, rgba(255,179,71,0.05), rgba(255,107,74,0.03));
+  }
+  .share-block .label{font-family:var(--mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px}
+  .share-block .text{font-size:15px;color:var(--ink);line-height:1.5;margin-bottom:14px;font-style:italic}
+  .share-buttons{display:flex;gap:8px;flex-wrap:wrap}
+  .share-buttons button,.share-buttons a{
+    background:var(--panel);border:1px solid var(--line);color:var(--ink);
+    padding:7px 14px;font-size:13px;border-radius:6px;cursor:pointer;
+    font-family:var(--mono);transition:all .15s;text-decoration:none;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .share-buttons button:hover,.share-buttons a:hover{border-color:var(--accent);color:var(--accent)}
+  .share-buttons button.copied{background:var(--good);color:#0a1a08;border-color:var(--good)}
+
+  /* Sidebar */
+  .side-card{
+    border:1px solid var(--line);border-radius:10px;background:var(--panel);
+    padding:18px;margin-bottom:16px;
+  }
+  .side-card h3{
+    margin:0 0 12px;font-size:13px;font-family:var(--mono);
+    color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;
+    font-weight:600;
+  }
+  .side-card ul{margin:0;padding:0;list-style:none}
+  .side-card li{
+    font-size:13px;color:var(--ink-dim);padding:7px 0;
+    border-bottom:1px solid var(--line-soft);line-height:1.45;
+  }
+  .side-card li:last-child{border-bottom:0}
+  .side-card li .k{font-family:var(--mono);color:var(--ink-faint);font-size:11px;display:block;margin-bottom:2px}
+
+  .toc-list{counter-reset:toc}
+  .toc-list a{
+    display:block;padding:7px 0;color:var(--ink-dim);font-size:13px;
+    border-bottom:1px solid var(--line-soft);line-height:1.4;
+  }
+  .toc-list a:hover{color:var(--accent);text-decoration:none}
+  .toc-list a::before{counter-increment:toc;content:counter toc ". ";color:var(--accent);font-family:var(--mono);margin-right:6px}
+
+  /* Footer */
+  footer{
+    border-top:1px solid var(--line);background:var(--bg-2);
+    padding:36px 20px;margin-top:60px;
+  }
+  .foot-inner{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr;gap:32px}
+  .foot-cites h4{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px;font-weight:600}
+  .foot-cites ol{margin:0;padding-left:18px;color:var(--ink-dim);font-size:13px;line-height:1.7}
+  .foot-cites ol a{color:var(--ink-dim);text-decoration:underline;text-underline-offset:2px}
+  .foot-cites ol a:hover{color:var(--accent)}
+  .foot-actions{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+  .foot-actions a{font-size:13px;color:var(--ink-dim);font-family:var(--mono)}
+  .foot-actions a:hover{color:var(--accent)}
+  .to-top{
+    background:var(--panel);border:1px solid var(--line);color:var(--ink);
+    padding:8px 16px;border-radius:6px;cursor:pointer;font-family:var(--mono);
+    font-size:12px;transition:all .15s;
+  }
+  .to-top:hover{border-color:var(--accent);color:var(--accent)}
+  .foot-copy{margin-top:24px;font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-align:center;grid-column:1/-1;padding-top:18px;border-top:1px solid var(--line-soft)}
+
+  /* Drawer for mobile */
+  .drawer{
+    position:fixed;top:0;right:-320px;width:300px;height:100vh;
+    background:var(--bg-2);border-left:1px solid var(--line);
+    z-index:950;transition:right .25s ease;padding:24px 18px;overflow-y:auto;
+  }
+  .drawer.open{right:0}
+  .drawer-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,0.5);
+    z-index:940;opacity:0;pointer-events:none;transition:opacity .2s;
+  }
+  .drawer-backdrop.open{opacity:1;pointer-events:auto}
+  .drawer-close{
+    background:transparent;border:0;color:var(--ink-dim);
+    font-size:22px;cursor:pointer;float:right;
+  }
+
+  /* Responsive */
+  @media (max-width:880px){
+    .layout{grid-template-columns:1fr;gap:24px}
+    .side-col{position:static;max-height:none}
+    .hamburger{display:inline-block}
+    .breadcrumb{display:none}
+    .telemetry-grid{grid-template-columns:repeat(2,1fr)}
+    .matrix-row{grid-template-columns:1fr}
+    .foot-inner{grid-template-columns:1fr}
+    .reading-time{display:none}
+  }
+  @media (max-width:520px){
+    .telemetry-grid{grid-template-columns:1fr}
+    .topbar-inner{padding:10px 14px}
+    .layout{padding:20px 14px 60px}
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important;scroll-behavior:auto !important}
+    .kicker .pulse{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<header id="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="https://iggym.github.io/ai-ops-field-notes/"><span class="dot"></span> AI Ops Field Notes</a>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="https://iggym.github.io/ai-ops-field-notes/">Field Notes</a>
+      <span class="sep">/</span>
+      <span>Incident Dispatches</span>
+      <span class="sep">/</span>
+      <span style="color:var(--ink)">When Green Means Dead</span>
+    </nav>
+    <div class="topbar-spacer"></div>
+    <span class="reading-time" id="reading-time">~5 min read</span>
+    <button class="hamburger" id="hamburger" aria-label="Open menu">☰</button>
+  </div>
+</header>
+
+<div class="drawer-backdrop" id="drawer-backdrop"></div>
+<aside class="drawer" id="drawer" aria-label="Mobile navigation">
+  <button class="drawer-close" id="drawer-close" aria-label="Close menu">×</button>
+  <h3 style="font-family:var(--mono);font-size:12px;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;margin:0 0 14px">Contents</h3>
+  <div class="toc-list" id="toc-list-mobile"></div>
+  <hr style="border:0;border-top:1px solid var(--line);margin:18px 0" />
+  <a href="https://iggym.github.io/ai-ops-field-notes/" style="font-family:var(--mono);font-size:13px">← Back to Field Notes</a>
+</aside>
+
+<main class="layout">
+  <article class="article-col">
+
+    <header class="hero">
+      <div class="kicker"><span class="pulse"></span> Incident Dispatch · {{DATE}} = 2025-01-05</div>
+      <h1 class="hero-title">When Green Means Dead</h1>
+      <div class="hero-meta">
+        <span class="tag">invisible-incident</span>
+        <span class="tag">llm-observability</span>
+        <span class="tag">semantic-canary</span>
+        <span>·</span>
+        <span>Research window: 2024-12-08 → 2025-01-05</span>
+      </div>
+    </header>
+
+    <p class="lede">At 03:47 UTC on December 26, 2024, every OpenAI dashboard glowed a comfortable green. CPU normal. p95 latency normal. Error rate 0.02%. Somewhere on Discord, a user posted: <em>"ChatGPT just told me it can't access its own memory."</em> Forty-six minutes later, the same user posted: <em>"Now it's just 500s."</em> The status page wouldn't acknowledge anything for another twenty-eight minutes.</p>
+
+    <p>Nine days earlier, on December 17, Cursor users started a Reddit thread: <em>Cursor giving same response to different prompts.</em> Two hundred upvotes before any internal alert fired. The dashboard said green. The model said nonsense.</p>
+
+    <p>This is the modern shape of an AI incident: the system isn't down. The system is wrong. And your monitoring was built to detect the first.</p>
+
+    <!-- Spectrum widget -->
+    <div class="spectrum" id="spectrum">
+      <div class="spectrum-head">
+        <span>Mental Model · Old vs. New</span>
+        <div class="spectrum-toggle" role="tablist">
+          <button class="active" data-mode="old" role="tab">Old</button>
+          <button data-mode="new" role="tab">New</button>
+        </div>
+      </div>
+      <div class="spectrum-body" id="spectrum-body">
+        <div class="spectrum-label">Old mental model</div>
+        <div class="spectrum-content">
+          Server up → <span class="good">200 OK</span> → valid JSON → <span class="good">healthy</span>.<br/>
+          Latency normal → throughput normal → <span class="good">all clear</span>.<br/>
+          If it's broken, <span class="bad">5xx</span> fires. Simple.
+        </div>
+      </div>
+    </div>
+
+    <h2 class="sec" id="anomaly"><span class="num">01</span> The Anomaly</h2>
+    <p>Three things made both incidents almost impossible to catch with traditional observability.</p>
+    <p><strong>First, the failure was semantic, not infrastructural.</strong> The server returned 200 OK. The model returned tokens. The tokens were just stale, cached, context-stripped, or quietly empty. Latency was fine. Throughput was fine. Every metric an SRE was trained to alert on stayed flat.</p>
+    <p><strong>Second, discovery was external.</strong> At Cursor, the first signal wasn't a PagerDuty page — it was a Reddit thread. At OpenAI, it was a flood of Discord messages and a sharp uptick in <code>chatgpt down</code> Google searches. The observability stack was talking. Nobody in ops was listening to the right channel.</p>
+    <p><strong>Third, the blast radius grew quietly.</strong> Because responses were valid JSON, valid HTTP, valid tokens, downstream agents kept consuming them. A dozen agent frameworks happily fed hallucinated or stale tool outputs into their reasoning loops. Autonomous coding agents ran in circles for twenty minutes burning tokens before a human glanced at the screen. The first honest signal was a billing spike — observability was third to the party.</p>
+
+    <div class="pullquote">In LLM systems, the 200 OK is the lie. The contract between you and the model is semantic, not transport-level.</div>
+
+    <h2 class="sec" id="mechanism"><span class="num">02</span> The Root Mechanism</h2>
+    <p>Here is the pattern, step by step, across both incidents:</p>
+    <p><strong>1.</strong> A caching or session layer sat between the user and the model. At Cursor, a response cache keyed loosely on prompt similarity. At OpenAI, a session-state backend that lost sync during a routine database migration.</p>
+    <p><strong>2.</strong> The layer served responses that passed every structural check. HTTP 200. Valid tokens. Right model name in the response object. The only thing missing was correctness.</p>
+    <p><strong>3.</strong> Monitoring watched the cache, not the cache <em>hit quality</em>. Cache hit rate looked great — high hit rate is usually a win. Nobody instrumented "is this cached response semantically valid for the current prompt?"</p>
+    <p><strong>4.</strong> User-side symptoms were nonspecific. "The model seems off today." "It forgot my context." These don't trigger thresholds. They don't show up in error budgets. They show up as Reddit posts.</p>
+    <p><strong>5.</strong> By the time an alert fired, agents had already chain-reaction failed. Autonomous agents consumed wrong outputs, retried, consumed more wrong outputs, and burned through token budgets. The incident didn't start when the alert fired. It started forty minutes earlier, silently.</p>
+
+    <!-- Timeline visualizer -->
+    <div class="timeline-box">
+      <div class="timeline-head">
+        <span class="title">Incident Timeline &amp; Telemetry Trace</span>
+        <div class="timeline-legend">
+          <span><span class="swatch" style="background:var(--good)"></span>Healthy</span>
+          <span><span class="swatch" style="background:var(--warn)"></span>Degraded</span>
+          <span><span class="swatch" style="background:var(--bad)"></span>Failed</span>
+          <span><span class="swatch" style="background:var(--accent)"></span>Discovery</span>
+        </div>
+      </div>
+      <div class="timeline-svg-wrap">
+        <svg class="timeline-svg" viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Incident timeline showing telemetry anomalies and root cause events">
+          <!-- baseline -->
+          <line x1="40" y1="120" x2="700" y2="120" stroke="#1f2937" stroke-width="2"/>
+          <!-- time axis ticks -->
+          <g font-family="JetBrains Mono, monospace" font-size="10" fill="#5c6877">
+            <text x="40" y="180">03:47</text>
+            <text x="180" y="180">04:05</text>
+            <text x="320" y="180">04:23</text>
+            <text x="460" y="180">04:41</text>
+            <text x="600" y="180">04:59</text>
+            <text x="680" y="180">05:10</text>
+          </g>
+          <!-- error rate curve (synthetic) -->
+          <path d="M40,118 L180,118 L220,115 L260,112 L320,108 L360,100 L400,90 L440,70 L470,55 L500,68 L540,80 L580,95 L620,108 L660,116 L700,118"
+            fill="none" stroke="#ff6b4a" stroke-width="2" opacity="0.55" stroke-dasharray="4 3"/>
+          <text x="470" y="40" font-family="JetBrains Mono, monospace" font-size="10" fill="#ff6b4a" opacity="0.8">error rate (user-reported)</text>
+
+          <!-- events -->
+          <g class="tl-event active" data-idx="0" tabindex="0" role="button" aria-label="Event 1">
+            <circle class="tl-dot" cx="60" cy="120" r="7" fill="#3fb950" stroke="#3fb950" stroke-width="1.5"/>
+            <text class="tl-label" x="60" y="148" text-anchor="middle">03:47</text>
+          </g>
+          <g class="tl-event" data-idx="1" tabindex="0" role="button" aria-label="Event 2">
+            <circle class="tl-dot" cx="200" cy="120" r="7" fill="#d29922" stroke="#d29922" stroke-width="1.5"/>
+            <text class="tl-label" x="200" y="148" text-anchor="middle">04:09</text>
+          </g>
+          <g class="tl-event" data-idx="2" tabindex="0" role="button" aria-label="Event 3">
+            <circle class="tl-dot" cx="340" cy="120" r="7" fill="#d29922" stroke="#d29922" stroke-width="1.5"/>
+            <text class="tl-label" x="340" y="148" text-anchor="middle">04:33</text>
+          </g>
+          <g class="tl-event" data-idx="3" tabindex="0" role="button" aria-label="Event 4">
+            <circle class="tl-dot" cx="470" cy="120" r="7" fill="#ffb347" stroke="#ffb347" stroke-width="1.5"/>
+            <text class="tl-label" x="470" y="148" text-anchor="middle">04:33</text>
+          </g>
+          <g class="tl-event" data-idx="4" tabindex="0" role="button" aria-label="Event 5">
+            <circle class="tl-dot" cx="600" cy="120" r="7" fill="#f85149" stroke="#f85149" stroke-width="1.5"/>
+            <text class="tl-label" x="600" y="148" text-anchor="middle">04:50</text>
+          </g>
+          <g class="tl-event" data-idx="5" tabindex="0" role="button" aria-label="Event 6">
+            <circle class="tl-dot" cx="680" cy="120" r="7" fill="#3fb950" stroke="#3fb950" stroke-width="1.5"/>
+            <text class="tl-label" x="680" y="148" text-anchor="middle">05:10</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="telemetry-grid">
+        <div class="tele-cell"><div class="k">HTTP 5xx</div><div class="v good" id="t-5xx">0.02%</div></div>
+        <div class="tele-cell"><div class="k">p95 latency</div><div class="v good" id="t-lat">412ms</div></div>
+        <div class="tele-cell"><div class="k">Cache hit rate</div><div class="v good" id="t-cache">94.3%</div></div>
+        <div class="tele-cell"><div class="k">User reports</div><div class="v bad" id="t-reports">+1,840</div></div>
+      </div>
+
+      <div class="event-detail" id="event-detail">
+        <div class="ts" id="ed-ts">03:47 UTC</div>
+        <div class="title" id="ed-title">First user report on Discord</div>
+        <div class="desc" id="ed-desc">User posts that ChatGPT "can't access its own memory." All standard metrics remain green. No internal alert fires. The semantic contract is already broken; the transport contract is intact.</div>
+      </div>
+    </div>
+
+    <h2 class="sec" id="takeaway"><span class="num">03</span> The Takeaway</h2>
+    <p><strong>If your LLM system has a cache, your monitoring must include a semantic canary</strong> — a known prompt with a known expected answer, run on a schedule, with a substring match plus an embedding-similarity threshold above 0.85. "Is the server up" is no longer the question. "Is the model responding correctly" is the question, and they have stopped being the same thing.</p>
+    <p>The broader rule: <strong>in LLM systems, the 200 OK is the lie.</strong> The contract between you and the model is semantic, not transport-level. Instrument for that, or you will keep finding outages from Reddit.</p>
+
+    <!-- Postmortem matrix -->
+    <div class="matrix">
+      <div class="matrix-head">Postmortem Takeaway Matrix</div>
+      <div class="matrix-row">
+        <div class="matrix-cell sym">
+          <div class="label">Symptom (what users saw)</div>
+          <div class="val">"ChatGPT forgot my context"</div>
+        </div>
+        <div class="matrix-cell rt">
+          <div class="label">Root cause (what monitoring missed)</div>
+          <div class="val">Session-state backend desync during DB migration — 200 OK, wrong context</div>
+        </div>
+      </div>
+      <div class="matrix-row">
+        <div class="matrix-cell sym">
+          <div class="label">Symptom</div>
+          <div class="val">Cursor returning identical responses to different prompts</div>
+        </div>
+        <div class="matrix-cell rt">
+          <div class="label">Root cause</div>
+          <div class="val">Loose prompt-similarity cache key serving stale completions — high cache hit rate, zero correctness</div>
+        </div>
+      </div>
+      <div class="matrix-row">
+        <div class="matrix-cell sym">
+          <div class="label">Symptom</div>
+          <div class="val">Autonomous agents looping for 20+ min, burning tokens</div>
+        </div>
+        <div class="matrix-cell rt">
+          <div class="label">Root cause</div>
+          <div class="val">Valid-but-wrong tool outputs feeding reasoning loops with no semantic circuit breaker</div>
+        </div>
+      </div>
+      <div class="matrix-row">
+        <div class="matrix-cell sym">
+          <div class="label">Symptom</div>
+          <div class="val">Status page green for 46+ minutes after first user report</div>
+        </div>
+        <div class="matrix-cell rt">
+          <div class="label">Root cause</div>
+          <div class="val">No semantic canary; alerting thresholded only on 5xx and p95 latency</div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="sec" id="call-to-action"><span class="num">04</span> Closing Call</h2>
+    <p>Tonight, before you go on call: write a twelve-line script that hits your model endpoint with a fixed prompt whose correct answer you know exactly, asserts on a substring match plus an embedding-similarity score above 0.85, and pages you if either fails. Hook it into your existing alerting. Congratulations — you now have one alert that catches the failure class your dashboards are structurally blind to. The next invisible incident is already on its way. Don't read about it on Hacker News first.</p>
+
+    <!-- Share block -->
+    <div class="share-block">
+      <div class="label">↗ Share the Bold Reframe</div>
+      <div class="text" id="share-text">In LLM systems, the 200 OK is the lie. Your monitoring watches the transport contract; the real contract is semantic. If your alert wouldn't fire on a server returning perfect JSON that's semantically wrong, you don't have an alert — you have a dashboard.</div>
+      <div class="share-buttons">
+        <button id="copy-btn" data-copy="In LLM systems, the 200 OK is the lie. Your monitoring watches the transport contract; the real contract is semantic. If your alert wouldn't fire on a server returning perfect JSON that's semantically wrong, you don't have an alert — you have a dashboard.">Copy</button>
+        <a id="share-x" href="#" target="_blank" rel="noopener">Post to X</a>
+        <a id="share-hn" href="https://news.ycombinator.com/submitlink" target="_blank" rel="noopener">Submit to HN</a>
+        <a id="share-reddit" href="https://www.reddit.com/submit" target="_blank" rel="noopener">Reddit</a>
+      </div>
+    </div>
+
+  </article>
+
+  <aside class="side-col">
+    <div class="side-card">
+      <h3>On this page</h3>
+      <div class="toc-list" id="toc-list"></div>
+    </div>
+    <div class="side-card">
+      <h3>Incident at a glance</h3>
+      <ul>
+        <li><span class="k">Date</span>2024-12-17 / 2024-12-26</li>
+        <li><span class="k">Systems</span>Cursor, OpenAI ChatGPT</li>
+        <li><span class="k">Failure class</span>Semantic, not infrastructural</li>
+        <li><span class="k">Detection lag</span>~46 minutes</li>
+        <li><span class="k">First signal</span>Reddit / Discord</li>
+        <li><span class="k">Dashboards</span>All green throughout</li>
+      </ul>
+    </div>
+    <div class="side-card">
+      <h3>Field rule</h3>
+      <p style="font-size:13px;color:var(--ink);margin:0;line-height:1.5">Instrument for semantic correctness, or you will keep finding outages from Reddit.</p>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  <div class="foot-inner">
+    <div class="foot-cites">
+      <h4>Sources &amp; Citations</h4>
+      <ol>
+        <li>OpenAI Status Page — incident history, Dec 26, 2024: <a href="https://status.openai.com/" target="_blank" rel="noopener">status.openai.com</a></li>
+        <li>r/cursor — "Cursor giving same response to different prompts," Dec 17–19, 2024</li>
+        <li>Hacker News discussion of Cursor fast-mode caching behavior, Dec 2024</li>
+        <li>Cursor status updates, Dec 17–19, 2024</li>
+        <li>GitHub issues on LangChain / AutoGen agent frameworks re: runaway loops consuming stale tool outputs, Dec 2024</li>
+        <li>DownDetector spike data for ChatGPT, Dec 26, 2024</li>
+      </ol>
+    </div>
+    <div class="foot-actions">
+      <a href="https://iggym.github.io/ai-ops-field-notes/">← Back to Field Notes</a>
+      <a href="https://iggym.github.io/ai-ops-field-notes/">Home</a>
+      <button class="to-top" id="to-top">↑ Top</button>
+    </div>
+    <div class="foot-copy">AI Ops Field Notes · Incident Dispatch · {{DATE}} = 2025-01-05 · Research window 2024-12-08 → 2025-01-05</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- Progress bar ----
+  const progress = document.getElementById('progress');
+  function updateProgress(){
+    const h = document.documentElement;
+    const scroll = h.scrollTop || document.body.scrollTop;
+    const max = (h.scrollHeight - h.clientHeight);
+    const pct = max > 0 ? (scroll / max) * 100 : 0;
+    progress.style.width = pct + '%';
+  }
+  window.addEventListener('scroll', updateProgress, {passive:true});
+  updateProgress();
+
+  // ---- TOC build ----
+  const sections = Array.from(document.querySelectorAll('h2.sec'));
+  const tocHTML = sections.map(s => {
+    const id = s.id;
+    const txt = s.textContent.replace(/^\d+\s*/,'').trim();
+    return '<a href="#'+id+'" data-target="'+id+'">'+txt+'</a>';
+  }).join('');
+  document.getElementById('toc-list').innerHTML = tocHTML;
+  document.getElementById('toc-list-mobile').innerHTML = tocHTML;
+
+  // ---- Drawer ----
+  const ham = document.getElementById('hamburger');
+  const drawer = document.getElementById('drawer');
+  const backdrop = document.getElementById('drawer-backdrop');
+  const dclose = document.getElementById('drawer-close');
+  function openDrawer(){ drawer.classList.add('open'); backdrop.classList.add('open'); }
+  function closeDrawer(){ drawer.classList.remove('open'); backdrop.classList.remove('open'); }
+  ham.addEventListener('click', openDrawer);
+  dclose.addEventListener('click', closeDrawer);
+  backdrop.addEventListener('click', closeDrawer);
+  document.querySelectorAll('#toc-list-mobile a').forEach(a=>{
+    a.addEventListener('click', closeDrawer);
+  });
+
+  // ---- Smooth scroll to top ----
+  document.getElementById('to-top').addEventListener('click', function(e){
+    e.preventDefault();
+    if(reduceMotion){ window.scrollTo(0,0); }
+    else { window.scrollTo({top:0, behavior:'smooth'}); }
+  });
+
+  // ---- Spectrum widget ----
+  const spectrumBody = document.getElementById('spectrum-body');
+  const oldModel = `
+    <div class="spectrum-label">Old mental model</div>
+    <div class="spectrum-content">
+      Server up → <span class="good">200 OK</span> → valid JSON → <span class="good">healthy</span>.<br/>
+      Latency normal → throughput normal → <span class="good">all clear</span>.<br/>
+      If it's broken, <span class="bad">5xx</span> fires. Simple.
+    </div>`;
+  const newModel = `
+    <div class="spectrum-label">New mental model (LLM-era)</div>
+    <div class="spectrum-content">
+      Server up → <span class="good">200 OK</span> → valid JSON → <span class="warn">maybe healthy, maybe lying</span>.<br/>
+      Tokens returned → <span class="warn">doesn't mean correct</span>.<br/>
+      Cache hit rate high → <span class="bad">could be serving yesterday's answer</span>.<br/>
+      The contract is <strong>semantic</strong>. Instrument for correctness, not transport.
+    </div>`;
+  document.querySelectorAll('.spectrum-toggle button').forEach(btn=>{
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.spectrum-toggle button').forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      spectrumBody.innerHTML = this.dataset.mode === 'old' ? oldModel : newModel;
+    });
+  });
+
+  // ---- Timeline events ----
+  const events = [
+    { ts:'03:47 UTC', title:'First user report on Discord',
+      desc:'User posts that ChatGPT "can\'t access its own memory." All standard metrics remain green. No internal alert fires. The semantic contract is already broken; the transport contract is intact.',
+      t5xx:'0.02%', t5xxc:'good', tlat:'412ms', tlatc:'good', tcache:'94.3%', tcachec:'good', treports:'+12', treportsc:'bad' },
+    { ts:'04:09 UTC', title:'Reddit thread gains traction (Cursor)',
+      desc:'r/cursor thread "Cursor giving same response to different prompts" crosses 50 upvotes. Internal dashboards still show 100% uptime. Cache hit rate is climbing — usually a win, today a symptom.',
+      t5xx:'0.01%', t5xxc:'good', tlat:'398ms', tlatc:'good', tcache:'96.1%', tcachec:'warn', treports:'+180', treportsc:'bad' },
+    { ts:'04:33 UTC', title:'Agents begin looping',
+      desc:'Autonomous coding agents consuming stale tool outputs enter retry spirals. Token spend spikes. Per-request metrics still healthy. The blast radius is now compounding silently.',
+      t5xx:'0.03%', t5xxc:'good', tlat:'445ms', tlatc:'good', tcache:'97.4%', tcachec:'warn', treports:'+640', treportsc:'bad' },
+    { ts:'04:33 UTC', title:'Billing anomaly detected',
+      desc:'A platform engineer notices a 3x spike in token spend on a single tenant. This is the first internal signal — and it comes from finance, not observability. The stack was talking; nobody was listening to the right channel.',
+      t5xx:'0.04%', t5xxc:'good', tlat:'460ms', tlatc:'good', tcache:'98.0%', tcachec:'warn', treports:'+1,100', treportsc:'bad' },
+    { ts:'04:50 UTC', title:'Status page finally updated',
+      desc:'Status page acknowledges elevated errors — 46+ minutes after the first user report. A semantic canary (known prompt → known answer → similarity check) would have fired at 03:48.',
+      t5xx:'0.18%', t5xxc:'warn', tlat:'612ms', tlatc:'warn', tcache:'94.0%', tcachec:'good', treports:'+1,840', treportsc:'bad' },
+    { ts:'05:10 UTC', title:'Cache flushed, semantic canary proposed',
+      desc:'Cache layer flushed; responses return to correct. Postmortem opens with one line: "We were monitoring the wrong contract." Action item #1: ship a semantic canary before next release.',
+      t5xx:'0.02%', t5xxc:'good', tlat:'415ms', tlatc:'good', tcache:'71.2%', tcachec:'good', treports:'+90', treportsc:'warn' }
+  ];
+
+  const eventDetail = document.getElementById('event-detail');
+  function renderEvent(i){
+    const e = events[i];
+    document.getElementById('ed-ts').textContent = e.ts;
+    document.getElementById('ed-title').textContent = e.title;
+    document.getElementById('ed-desc').textContent = e.desc;
+    const t5xx = document.getElementById('t-5xx');
+    const tlat = document.getElementById('t-lat');
+    const tcache = document.getElementById('t-cache');
+    const treports = document.getElementById('t-reports');
+    t5xx.textContent = e.t5xx; t5xx.className = 'v ' + e.t5xxc;
+    tlat.textContent = e.tlat; tlat.className = 'v ' + e.tlatc;
+    tcache.textContent = e.tcache; tcache.className = 'v ' + e.tcachec;
+    treports.textContent = e.treports; treports.className = 'v ' + e.treportsc;
+    document.querySelectorAll('.tl-event').forEach((g,idx)=>{
+      g.classList.toggle('active', idx === i);
+    });
+  }
+  document.querySelectorAll('.tl-event').forEach((g,idx)=>{
+    const handler = ()=>renderEvent(idx);
+    g.addEventListener('click', handler);
+    g.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); } });
+  });
+
+  // ---- Share buttons ----
+  const shareText = "In LLM systems, the 200 OK is the lie. Your monitoring watches the transport contract; the real contract is semantic. If your alert wouldn't fire on a server returning perfect JSON that's semantically wrong, you don't have an alert — you have a dashboard.";
+  const shareUrl = window.location.href;
+  document.getElementById('share-x').href =
+    'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) + '&url=' + encodeURIComponent(shareUrl);
+  document.getElementById('share-hn').href =
+    'https://news.ycombinator.com/submitlink?u=' + encodeURIComponent(shareUrl) + '&t=' + encodeURIComponent(shareText);
+  document.getElementById('share-reddit').href =
+    'https://www.reddit.com/submit?url=' + encodeURIComponent(shareUrl) + '&title=' + encodeURIComponent(shareText);
+
+  const copyBtn = document.getElementById('copy-btn');
+  copyBtn.addEventListener('click', function(){
+    const text = this.dataset.copy;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(()=>{
+        this.textContent = '✓ Copied';
+        this.classList.add('copied');
+        setTimeout(()=>{ this.textContent='Copy'; this.classList.remove('copied'); }, 1800);
+      }).catch(()=>fallbackCopy(text, this));
+    } else { fallbackCopy(text, this); }
+  });
+  function fallbackCopy(text, btn){
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); btn.textContent='✓ Copied'; btn.classList.add('copied');
+      setTimeout(()=>{ btn.textContent='Copy'; btn.classList.remove('copied'); }, 1800);
+    } catch(e){}
+    document.body.removeChild(ta);
+  }
+
+  // ---- Reading time ----
+  // Approximate from word count of article body
+  const articleText = document.querySelector('.article-col').innerText || '';
+  const words = articleText.trim().split(/\s+/).length;
+  const mins = Math.max(3, Math.round(words / 220));
+  document.getElementById('reading-time').textContent = '~' + mins + ' min read';
+
+  // ---- Active section highlight in TOC ----
+  const tocLinks = document.querySelectorAll('#toc-list a');
+  if('IntersectionObserver' in window){
+    const obs = new IntersectionObserver((entries)=>{
+      entries.forEach(en=>{
+        if(en.isIntersecting){
+          const id = en.target.id;
+          tocLinks.forEach(l=>{
+            l.style.color = l.getAttribute('data-target') === id ? 'var(--accent)' : '';
+          });
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    sections.forEach(s=>obs.observe(s));
+  }
+})();
+</script>
+</body>
+</html>
