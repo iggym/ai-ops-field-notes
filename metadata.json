@@ -7,5 +7,14 @@
     "audience": "Practitioners and on-call engineers",
     "description": "Short, sharp incident dispatches from AI systems in production — top-of-funnel, war-story shaped, no lessons-learned headers."
   },
-  "articles": []
+  "articles": [{
+  "title": "When Green Means Dead",
+  "hook": "In LLM systems, the 200 OK is the lie — your monitoring watches the transport contract while the real contract is semantic.",
+  "date": "2025-01-05",
+  "status": "published",
+  "pinned": false,
+  "reading_time_minutes": 5,
+  "tags": ["invisible-incident", "llm-observability", "semantic-canary", "caching-failure"],
+  "path": "articles/when-green-means-dead.html"
+}]
 }
