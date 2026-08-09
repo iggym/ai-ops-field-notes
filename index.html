@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Ops Field Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0B0C; --amber:#FFB020; --red:#FF4433; --muted:#7A7A76; --text:#DCDCD6;
+    --mono:'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
+  body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--mono); line-height:1.6; font-size:15px; }
+  a{color:inherit;}
+  .topbar{ position:sticky; top:0; z-index:20; background:rgba(11,11,12,0.92); backdrop-filter:blur(6px); border-bottom:1px solid rgba(255,176,32,0.2); padding:12px 20px; display:flex; justify-content:space-between; align-items:center; }
+  .topbar .mark{ color:var(--amber); text-decoration:none; font-size:12.5px; letter-spacing:0.03em; }
+  .topbar .live{ color:var(--red); font-size:11px; display:flex; align-items:center; gap:6px; }
+  .live .dot{ width:6px; height:6px; border-radius:50%; background:var(--red); animation:blink 1s step-start infinite; }
+  @keyframes blink{ 50%{ opacity:0.2; } }
+
+  header{ padding:64px 20px 12px; max-width:720px; margin:0 auto; }
+  .prompt-line{ color:var(--muted); font-size:12.5px; margin-bottom:14px; }
+  .prompt-line .amber{ color:var(--amber); }
+  h1{ font-size:clamp(1.8rem,5vw,2.6rem); margin:0 0 14px; font-weight:600; letter-spacing:-0.01em; }
+  .cursor{ display:inline-block; width:0.55em; height:1em; background:var(--amber); vertical-align:middle; margin-left:4px; animation:blink 0.9s step-start infinite; }
+  .tagline{ color:var(--amber); font-size:14.5px; margin:0 0 8px; }
+  .desc{ color:var(--muted); font-size:13.5px; max-width:520px; }
+
+  main{ max-width:820px; margin:0 auto; padding:30px 20px 100px; }
+  .section-label{ font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); border-bottom:1px dashed rgba(255,176,32,0.25); padding-bottom:10px; margin-bottom:6px; display:flex; justify-content:space-between; }
+
+  .log{ display:flex; flex-direction:column; }
+  .entry{
+    display:block; text-decoration:none; color:inherit;
+    padding:16px 14px; border-bottom:1px solid rgba(220,220,214,0.08);
+    position:relative; transition:background .15s ease, padding-left .15s ease;
+  }
+  .entry:hover{ background:rgba(255,176,32,0.04); padding-left:20px; }
+  .entry:hover::before{ content:'>'; position:absolute; left:0; color:var(--amber); }
+  .entry-head{ display:flex; gap:12px; color:var(--muted); font-size:11.5px; margin-bottom:6px; flex-wrap:wrap; }
+  .entry-head .ts{ color:var(--amber); }
+  .entry-title{ font-size:15.5px; color:var(--text); margin-bottom:5px; font-weight:600; }
+  .entry-hook{ color:#B5B5AE; font-size:13.5px; }
+  .entry.pinned{ border-left:2px solid var(--red); background:rgba(255,68,51,0.04); }
+  .entry.pinned .entry-head .ts{ color:var(--red); }
+
+  .empty{ text-align:center; padding:60px 20px; color:var(--muted); }
+  .empty .glyph{ color:var(--amber); margin-bottom:10px; }
+
+  footer{ border-top:1px dashed rgba(255,176,32,0.2); padding:32px 20px; text-align:center; }
+  footer p{ font-size:12px; color:var(--muted); max-width:480px; margin:0 auto 12px; }
+  footer a.home{ font-size:11.5px; color:var(--amber); text-decoration:none; border-bottom:1px solid var(--amber); padding-bottom:2px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="mark" href="https://iggym.github.io/ai-ops-field-notes/">ai-ops-field-notes$</a>
+  <span class="live"><span class="dot"></span>ON CALL</span>
+</div>
+
+<header>
+  <div class="prompt-line"><span class="amber">root@ops:~$</span> tail -f dispatch.log</div>
+  <h1>AI Ops Field Notes<span class="cursor"></span></h1>
+  <p class="tagline">Dispatches from the pager, while it's still buzzing.</p>
+  <p class="desc" id="site-desc">Short, sharp incident dispatches from AI systems in production.</p>
+</header>
+
+<main>
+  <div class="section-label"><span>LOG</span><span id="feed-count">loading…</span></div>
+  <div class="log" id="feed"></div>
+</main>
+
+<footer>
+  <p id="footer-desc">AI Ops Field Notes — the incident-dispatch layer of an eight-repo portfolio on running AI in production.</p>
+  <a class="home" href="https://iggym.github.io/ai-ops-field-notes/">^ top</a>
+</footer>
+
+<script>
+(async function(){
+  const feedEl = document.getElementById('feed');
+  const countEl = document.getElementById('feed-count');
+  const descEl = document.getElementById('site-desc');
+  const footerDescEl = document.getElementById('footer-desc');
+
+  function fmtTs(iso){
+    try{
+      const d = new Date(iso+'T00:00:00');
+      return d.toISOString().slice(0,10).replace(/-/g,'.') ;
+    }catch(e){ return iso; }
+  }
+
+  function entryHTML(a,isPinned){
+    return `
+      <a class="entry ${isPinned?'pinned':''}" href="${a.path}">
+        <div class="entry-head"><span class="ts">${fmtTs(a.date)}</span><span>${a.reading_time_minutes||'—'}min</span>${isPinned?'<span style="color:var(--red)">SEV-1</span>':''}</div>
+        <div class="entry-title">${a.title}</div>
+        <div class="entry-hook">${a.hook||''}</div>
+      </a>`;
+  }
+
+  function render(published, site){
+    if(site && site.description){ descEl.textContent = site.description; footerDescEl.textContent = site.description; }
+    if(published.length === 0){
+      feedEl.innerHTML = '<div class="empty"><div class="glyph">-- no dispatches logged --</div>first entry incoming</div>';
+      countEl.textContent = '0'; return;
+    }
+    const pinned = published.filter(a=>a.pinned);
+    const rest = published.filter(a=>!a.pinned).sort((a,b)=>new Date(b.date)-new Date(a.date));
+    countEl.textContent = published.length + ' entries';
+    let html='';
+    pinned.forEach(a=>{ html += entryHTML(a,true); });
+    rest.forEach(a=>{ html += entryHTML(a,false); });
+    feedEl.innerHTML = html;
+  }
+
+  try{
+    const res = await fetch('./metadata.json');
+    if(!res.ok) throw new Error('not found');
+    const data = await res.json();
+    render((data.articles||[]).filter(a=>a.status==='published'), data.site);
+  }catch(err){
+    feedEl.innerHTML = '<div class="empty"><div class="glyph">-- no dispatches logged --</div>first entry incoming</div>';
+  }
+})();
+</script>
+</body>
+</html>
