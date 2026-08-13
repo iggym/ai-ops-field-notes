@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Eleven Day Retry Loop | AI Ops Field Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1115;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #ff3b30;
+    --card: #1e222b;
+    --border: #333842;
+    --green: #10b981;
+    --yellow: #fbbf24;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 17px;
+  }
+  #progress {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: var(--accent); width: 0%; z-index: 101;
+    transition: width 0.1s linear;
+  }
+  #topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(15, 17, 21, 0.8);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.8rem 1.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .logo { font-weight: 700; font-size: 1.1rem; color: #fff; text-decoration: none;}
+  .nav-links { display: flex; gap: 1.5rem; align-items: center; font-size: 0.9rem; color: var(--muted);}
+  .nav-links a { color: var(--muted); text-decoration: none; }
+  .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+  
+  main {
+    max-width: 620px; margin: 0 auto; padding: 2rem 1.5rem 4rem;
+  }
+  h1 {
+    font-size: clamp(1.7rem, 4vw, 2.4rem);
+    line-height: 1.2; margin-bottom: 1rem; font-weight: 700;
+  }
+  .meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 2.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;}
+  p { margin-bottom: 1.5rem; }
+  code { background: #1a1d24; padding: 2px 6px; border-radius: 4px; color: #f43f5e; font-size: 0.9em;}
+  
+  /* Pull Quotes */
+  .pull-quote {
+    border-left: 3px solid var(--accent);
+    padding: 1rem 1.5rem;
+    margin: 2.5rem 0;
+    background: rgba(255, 59, 48, 0.05);
+    font-weight: 500;
+    font-size: 1.1rem;
+    position: relative;
+  }
+  .share-icons {
+    display: flex; gap: 1rem; margin-top: 0.8rem;
+  }
+  .share-icons a {
+    color: var(--muted); transition: color 0.2s;
+    display: flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; text-decoration: none;
+  }
+  .share-icons a:hover { color: #fff; }
+
+  /* Simulator */
+  .simulator {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.5rem; margin: 2.5rem 0;
+  }
+  .sim-header { display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: baseline;}
+  .sim-caption { font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;}
+  .sim-cost { font-family: monospace; font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+  
+  .sim-logs {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    background: #0b0c0f; border: 1px solid var(--border); border-radius: 4px;
+    padding: 1rem; font-family: monospace; font-size: 0.85rem; margin-bottom: 1.5rem;
+    min-height: 180px;
+  }
+  .log-col h4 { font-family: 'Inter', sans-serif; font-size: 0.8rem; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; letter-spacing: 0.05em;}
+  .log-line { opacity: 0; transform: translateY(5px); transition: all 0.3s ease-out; margin-bottom: 0.3rem; }
+  .log-line.visible { opacity: 1; transform: translateY(0); }
+  .net-ok { color: var(--green); }
+  .net-warn { color: var(--yellow); }
+  .agent-err { color: var(--accent); }
+  .agent-err-reduced { color: var(--accent); margin-bottom: 0.3rem; }
+  .net-ok-reduced { color: var(--green); margin-bottom: 0.3rem; }
+
+  .sim-controls { display: flex; gap: 1rem; }
+  button {
+    padding: 0.8rem 1.2rem; border-radius: 4px; font-weight: 600; cursor: pointer;
+    border: none; font-size: 0.95rem; transition: opacity 0.2s;
+  }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-trigger { background: #2563eb; color: #fff; flex: 1; }
+  .btn-kill { background: #dc2626; color: #fff; flex: 1; }
+
+  footer {
+    border-top: 1px solid var(--border); margin-top: 4rem; padding-top: 2rem;
+    font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between;
+  }
+  footer a { color: var(--muted); text-decoration: underline; }
+
+  @media (max-width: 600px) {
+    .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--card); flex-direction: column; padding: 1rem; border-bottom: 1px solid var(--border);}
+    .nav-links.active { display: flex; }
+    .hamburger { display: block; }
+    .sim-logs { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .log-line { transition: none; opacity: 1; transform: none; }
+    #progress { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<header id="topbar">
+  <a href="https://iggym.github.io/ai-ops-field-notes/" class="logo">AI Ops Field Notes</a>
+  <nav class="nav-links">
+    <span>~3 min read</span>
+    <a href="https://iggym.github.io/ai-ops-field-notes/">Home</a>
+  </nav>
+  <button class="hamburger" aria-label="Menu">☰</button>
+</header>
+
+<main>
+  <h1>The Eleven Day Retry Loop</h1>
+  <div class="meta">Dispatch · May 12, 2026 · Window: Apr 28 – May 12</div>
+
+  <p>Tuesday, 2:00 PM. The billing alert triggers first. Not a pager for high CPU, but a cold Slack message from the finance bot: <code>API spend for Tenant-Alpha is up 4,000% in the last hour.</code></p>
+
+  <p>The on-call engineer opens the observability dashboard. The primary data-retrieval agent is hammering the internal SQL gateway. But it’s not a simple network loop. The HTTP status codes are all 400 Bad Request.</p>
+
+  <p>The team had deployed an exponential backoff policy the week before. It was supposed to be the silver bullet for transient LLM latency. If a tool call failed, wait one second, then two, then four, with random jitter to prevent a thundering herd. But this wasn't a transient timeout. This was a semantic mismatch.</p>
+
+  <p>Two hours earlier, a backend team had quietly changed a timestamp format in a peripheral microservice from ISO8601 to Unix epoch. The agent’s tool schema hadn't been updated. Every time the agent queried the database for "events since Tuesday," the gateway rejected the payload.</p>
+
+  <p>Here is where the system dug its own hole. The network layer caught the 400 error and triggered the exponential backoff. But the LLM's <em>reasoning</em> layer—the inner agentic loop—didn't see the HTTP rejection. It only saw the tool execution fail. The LLM, trying to be helpful, rewrote its own prompt to "try a different approach." It generated a new tool call with a slightly different SQL query.</p>
+
+  <div class="pull-quote">
+    The agent wasn't waiting four seconds between retries. It was generating a new attempt, failing, and generating another, instantly.
+    <div class="share-icons">
+      <a href="https://twitter.com/intent/tweet?text=The%20agent%20wasn't%20waiting%20four%20seconds%20between%20retries.%20It%20was%20generating%20a%20new%20attempt%2C%20failing%2C%20and%20generating%20another%2C%20instantly.&url=https%3A%2F%2Figgym.github.io%2Fai-ops-field-notes%2F" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+        Post
+      </a>
+      <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Figgym.github.io%2Fai-ops-field-notes%2F" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path></svg>
+        Share
+      </a>
+    </div>
+  </div>
+
+  <p>BEFORE: The engineer assumes the API gateway is overloaded and the agent is just retrying aggressively. <br>AFTER: They realize the agent is aggressively hallucinating new queries, convinced the data exists if it just asks nicely enough.</p>
+
+  <div class="simulator">
+    <div class="sim-header">
+      <span class="sim-caption">Network Backoff vs. Agentic Loop</span>
+      <span class="sim-cost">$0.00</span>
+    </div>
+    <div class="sim-logs">
+      <div class="log-col">
+        <h4>Network Proxy</h4>
+        <div id="netLog"></div>
+      </div>
+      <div class="log-col">
+        <h4>Agent Reasoning</h4>
+        <div id="agentLog"></div>
+      </div>
+    </div>
+    <div class="sim-controls">
+      <button id="btnTrigger" class="btn-trigger">Trigger Schema Drift</button>
+      <button id="btnKill" class="btn-kill" disabled>Kill Orchestrator</button>
+    </div>
+  </div>
+
+  <p>The turn happens when they look at the trace logs. The "backoff" is working perfectly at the network proxy. But inside the agent's context window, a secondary retry loop is firing. The agent is spawning autonomous sub-processes to investigate why the data is missing. Each sub-agent inherits the same broken schema, and each spawns its own children.</p>
+
+  <p>By Wednesday morning, the eleven-day loop is underway. The system is no longer trying to fetch data. It is trying to fetch data about why it can't fetch data. The execution tree has branched out into thousands of concurrent worker threads, all burning tokens to debug a string formatting error.</p>
+
+  <p>The engineer hits the kill switch on the primary orchestrator pod. The billing dashboard pauses for exactly twelve seconds. Then the spend resumes.</p>
+
+  <p>A runaway process that spawns autonomous sub-processes bypasses traditional kill switches. The children are detached. They are running on their own asynchronous queues.</p>
+
+  <div class="pull-quote">
+    When you let an LLM rewrite its own tool calls on failure, you aren't building resilience. You are building an engine that can't read its own dashboard.
+    <div class="share-icons">
+      <a href="https://twitter.com/intent/tweet?text=When%20you%20let%20an%20LLM%20rewrite%20its%20own%20tool%20calls%20on%20failure%2C%20you%20aren't%20building%20resilience.%20You%20are%20building%20an%20engine%20that%20can't%20read%20its%20own%20dashboard.&url=https%3A%2F%2Figgym.github.io%2Fai-ops-field-notes%2F" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+        Post
+      </a>
+      <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Figgym.github.io%2Fai-ops-field-notes%2F" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path></svg>
+        Share
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <span>Composite dispatch based on agentic runaway patterns.</span>
+    <a href="https://iggym.github.io/ai-ops-field-notes/">Home</a>
+  </footer>
+</main>
+
+<script>
+  // Progress Bar
+  window.addEventListener('scroll', () => {
+    const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrolled = (winScroll / height) * 100;
+    document.getElementById("progress").style.width = scrolled + "%";
+  });
+
+  // Mobile Nav
+  document.querySelector('.hamburger').addEventListener('click', () => {
+    document.querySelector('.nav-links').classList.toggle('active');
+  });
+
+  // Simulator Logic
+  const btnTrigger = document.getElementById('btnTrigger');
+  const btnKill = document.getElementById('btnKill');
+  const simCost = document.querySelector('.sim-cost');
+  const netLog = document.getElementById('netLog');
+  const agentLog = document.getElementById('agentLog');
+
+  let cost = 0;
+  let step = 0;
+  let intervalId = null;
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  btnTrigger.addEventListener('click', () => {
+    btnTrigger.disabled = true;
+    btnKill.disabled = false;
+    
+    intervalId = setInterval(() => {
+      if (step >= 6) {
+        clearInterval(intervalId);
+        return;
+      }
+      
+      // Network Layer: Exponential Backoff
+      const netDelay = Math.pow(2, step);
+      const netMsg = `HTTP 400. Backoff: ${netDelay}s`;
+      addLog(netLog, netMsg, 'net-warn', prefersReducedMotion);
+      
+      // Agent Layer: Spawning sub-agents instantly
+      const agentMsg = `Tool failed. Spawning Sub-Agent-${Math.floor(Math.random() * 999)}...`;
+      addLog(agentLog, agentMsg, 'agent-err', prefersReducedMotion);
+      
+      cost += Math.pow(3, step) * 150;
+      simCost.textContent = `$${cost.toLocaleString()}`;
+      
+      step++;
+    }, prefersReducedMotion ? 200 : 1500);
+  });
+
+  btnKill.addEventListener('click', () => {
+    clearInterval(intervalId);
+    btnKill.disabled = true;
+    const killMsg = document.createElement('div');
+    killMsg.className = prefersReducedMotion ? 'net-ok-reduced' : 'log-line net-ok visible';
+    killMsg.textContent = `Orchestrator KILLED. But 42 detached sub-agents remain active.`;
+    agentLog.appendChild(killMsg);
+    if (!prefersReducedMotion) setTimeout(() => killMsg.classList.add('visible'), 10);
+  });
+
+  function addLog(container, text, cls, reducedMotion) {
+    if (reducedMotion) {
+      const p = document.createElement('p');
+      p.className = `${cls}-reduced`;
+      p.textContent = text;
+      container.appendChild(p);
+    } else {
+      const div = document.createElement('div');
+      div.className = `log-line ${cls}`;
+      div.textContent = text;
+      container.appendChild(div);
+      setTimeout(() => div.classList.add('visible'), 10);
+    }
+    container.scrollTop = container.scrollHeight;
+  }
+</script>
+</body>
+</html>
