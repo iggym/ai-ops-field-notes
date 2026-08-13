@@ -55,6 +55,84 @@
   "reading_time_minutes": 3,
   "pinned": false,
   "research_window": "2025-01-06 to 2025-02-17"
+}, {
+  "id": "9104",
+  "slug": "the-eleven-day-retry-loop",
+  "title": "The Eleven Day Retry Loop",
+  "hook": "A retry loop without an upper bound isn't a feature. It’s a bug waiting for a bad schema change.",
+  "path": "articles/the-eleven-day-retry-loop.html",
+  "date": "2026-05-12",
+  "status": "published",
+  "format": "dispatch",
+  "tags": ["runaway-process", "retry-loop", "agentic-failure"],
+  "reading_time_minutes": 3,
+  "pinned": false,
+  "research_window": "2026-04-28 to 2026-05-12"
+},{
+  "id": "1203",
+  "slug": "the-model-was-fine",
+  "title": "The model was fine",
+  "hook": "The model was fine. It was doing exactly what it was told — by someone who wasn't in the incident channel.",
+  "path": "articles/the-model-was-fine.html",
+  "date": "2024-12-03",
+  "status": "published",
+  "format": "dispatch",
+  "tags": ["false-positive", "feature-flag", "ai-monitoring"],
+  "reading_time_minutes": 3,
+  "pinned": false,
+  "research_window": "2024-10-29 to 2024-12-03"
+}, {
+  "id": "0021",
+  "slug": "the-loop-that-ate-the-key",
+  "title": "The Loop That Ate The Key",
+  "hook": "When you build agentic loops, never let an LLM decide when to stop trying.",
+  "path": "articles/the-loop-that-ate-the-key.html",
+  "date": "2026-05-20",
+  "status": "published",
+  "format": "dispatch",
+  "tags": ["retry-loop", "agentic-ai", "cost-spike"],
+  "reading_time_minutes": 3,
+  "pinned": false,
+  "research_window": "2026-04-08 to 2026-05-20"
+}, {
+  "id": "4202",
+  "slug": "the-4200-weekend",
+  "title": "The $4,200 Weekend",
+  "hook": "The gap isn't instrumentation. It's enforcement.",
+  "path": "articles/the-4200-weekend.html",
+  "date": "2026-06-13",
+  "status": "published",
+  "format": "dispatch",
+  "tags": ["cost-spike", "circuit-breakers", "agent-observability"],
+  "reading_time_minutes": 3,
+  "pinned": false,
+  "research_window": "2026-04-18 through 2026-06-13"
+},{
+  "id": "0284",
+  "slug": "the-message-that-never-sent",
+  "title": "The Message That Never Sent",
+  "hook": "Autonomy without a way to say stop isn't autonomy. It's just a while loop with better prose.",
+  "path": "articles/the-message-that-never-sent.html",
+  "date": "2026-03-18",
+  "status": "published",
+  "format": "dispatch",
+  "tags": ["cost-spike", "circuit-breaker", "agentic-loops"],
+  "reading_time_minutes": 3,
+  "pinned": false,
+  "research_window": "2026-02-11 to 2026-03-18"
+},{
+  "id": "8473",
+  "slug": "the-ghost-in-the-vector-space",
+  "title": "The Ghost in the Vector Space",
+  "hook": "When you rely solely on embedding geometry to monitor your AI, you aren't measuring intelligence. You are measuring how often your partners break their API contracts.",
+  "path": "articles/the-ghost-in-the-vector-space.html",
+  "date": "2026-02-24",
+  "status": "published",
+  "format": "dispatch",
+  "tags": ["false-positive", "data-drift", "embedding-monitoring"],
+  "reading_time_minutes": 3,
+  "pinned": false,
+  "research_window": "2026-01-13 to 2026-02-24"
 }
   ]
 }
