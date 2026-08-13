@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>$4,200 Weekend — ai-ops-field-notes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #faf8f5;
+            color: #1e1b18;
+            padding: 0 1rem 4rem;
+            line-height: 1.7;
+        }
+        a {
+            color: #1e1b18;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(30, 27, 24, 0.15);
+            transition: border-color 0.2s;
+        }
+        a:hover {
+            border-bottom-color: #1e1b18;
+        }
+
+        /* progress bar */
+        #progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            z-index: 1000;
+            background: #e6e2dc;
+        }
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #1e1b18;
+            transition: width 0.1s linear;
+        }
+
+        /* sticky topbar — glassmorphism */
+        #topbar {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.9rem 1.25rem;
+            background: rgba(250, 248, 245, 0.72);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(30, 27, 24, 0.06);
+            margin: 0 -1rem 1.5rem;
+            padding-left: calc(1rem + 1.25rem);
+            padding-right: calc(1rem + 1.25rem);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        #topbar .home-link {
+            border-bottom: none;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+        #topbar .home-link span {
+            font-weight: 400;
+            opacity: 0.5;
+        }
+        #topbar .right {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+        #topbar .reading-time {
+            font-size: 0.75rem;
+            opacity: 0.6;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+        /* mobile hamburger */
+        #hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+        }
+        #hamburger span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: #1e1b18;
+            border-radius: 2px;
+            transition: 0.2s;
+        }
+        #mobile-menu {
+            display: none;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding: 1rem 0 0.5rem;
+            font-size: 0.95rem;
+        }
+        #mobile-menu.open {
+            display: flex;
+        }
+        @media (max-width: 600px) {
+            #hamburger {
+                display: flex;
+            }
+            #topbar .right .desktop-only {
+                display: none;
+            }
+            #topbar {
+                flex-wrap: wrap;
+                padding-top: 0.7rem;
+                padding-bottom: 0.7rem;
+            }
+        }
+        @media (min-width: 601px) {
+            #mobile-menu {
+                display: none !important;
+            }
+        }
+
+        /* main column */
+        .container {
+            max-width: 620px;
+            margin: 0 auto;
+        }
+
+        /* hero title */
+        h1 {
+            font-size: clamp(1.7rem, 4vw, 2.4rem);
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.025em;
+            margin: 1.2rem 0 0.5rem;
+        }
+        .byline {
+            font-size: 0.85rem;
+            color: #6b635b;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #e6e2dc;
+            padding-bottom: 1.5rem;
+        }
+        .byline time {
+            font-weight: 500;
+        }
+
+        .dispatch {
+            font-size: 1.05rem;
+            line-height: 1.85;
+            color: #1e1b18;
+        }
+        .dispatch p {
+            margin-bottom: 1.4rem;
+        }
+        .dispatch p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* interactive moment — cost counter */
+        .interactive-block {
+            background: #f1eee9;
+            border-radius: 12px;
+            padding: 1.5rem 1.75rem;
+            margin: 2rem 0 2.2rem;
+            border-left: 4px solid #1e1b18;
+        }
+        .interactive-block .caption {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 600;
+            color: #4a443e;
+            margin-bottom: 0.5rem;
+        }
+        .interactive-block .cost-display {
+            font-size: 2.2rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+            color: #1e1b18;
+            margin-bottom: 0.3rem;
+        }
+        .interactive-block .cost-display .dollar {
+            font-weight: 400;
+            opacity: 0.5;
+        }
+        .interactive-block .cost-note {
+            font-size: 0.85rem;
+            color: #4a443e;
+        }
+        .interactive-block .status-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #2b8c5e;
+            transition: background 1.5s ease;
+            flex-shrink: 0;
+        }
+        .status-dot.warning {
+            background: #c9543a;
+        }
+        .status-dot.critical {
+            background: #b22234;
+            animation: pulse-critical 1.2s ease-in-out infinite;
+        }
+        @keyframes pulse-critical {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.4;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .status-dot.critical {
+                animation: none;
+            }
+        }
+
+        /* shareable pull-quotes */
+        .pull-quote {
+            margin: 2rem 0 1.8rem;
+            padding: 1.25rem 1.5rem;
+            background: #f4f1ec;
+            border-radius: 8px;
+            border-left: 3px solid #1e1b18;
+        }
+        .pull-quote blockquote {
+            font-size: 1.05rem;
+            font-weight: 500;
+            line-height: 1.6;
+            margin-bottom: 0.6rem;
+            quotes: none;
+        }
+        .pull-quote blockquote::before {
+            content: '\201C';
+            font-size: 1.4rem;
+            opacity: 0.4;
+            margin-right: 0.1rem;
+        }
+        .pull-quote blockquote::after {
+            content: '\201D';
+            font-size: 1.4rem;
+            opacity: 0.4;
+            margin-left: 0.1rem;
+        }
+        .share-actions {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .share-actions span {
+            opacity: 0.4;
+            margin-right: 0.2rem;
+        }
+        .share-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: 1px solid rgba(30, 27, 24, 0.15);
+            border-radius: 4px;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #1e1b18;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            font-family: inherit;
+            line-height: 1.6;
+            text-decoration: none;
+        }
+        .share-btn:hover {
+            background: #e6e2dc;
+            border-color: #1e1b18;
+        }
+        .share-btn svg {
+            width: 13px;
+            height: 13px;
+            fill: currentColor;
+            display: inline-block;
+        }
+
+        /* footer */
+        .footer {
+            margin-top: 3.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e6e2dc;
+            font-size: 0.8rem;
+            color: #6b635b;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .footer a {
+            color: #1e1b18;
+            border-bottom: 1px solid rgba(30, 27, 24, 0.15);
+        }
+        .footer .disclosure {
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- progress -->
+    <div id="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+
+    <!-- topbar -->
+    <header id="topbar">
+        <a href="https://iggym.github.io/ai-ops-field-notes/" class="home-link" aria-label="Home">
+            ai-ops-field-notes <span>·</span>
+        </a>
+        <div class="right">
+            <span class="reading-time desktop-only">3 min read</span>
+            <button id="hamburger" aria-label="Menu" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </header>
+    <div id="mobile-menu" class="container">
+        <a href="https://iggym.github.io/ai-ops-field-notes/">Home</a>
+        <span style="font-size:0.75rem;opacity:0.5;">3 min read</span>
+    </div>
+
+    <main class="container">
+        <article>
+            <h1>The $4,200 Weekend</h1>
+            <div class="byline">
+                <time datetime="2026-06-13">June 13, 2026</time> · Dispatch
+            </div>
+
+            <div class="dispatch">
+                <p>The agent was supposed to sync order data to the CRM. A straightforward job. It had been running without issue for three weeks. Friday evening, the developer closed his laptop and left for his sister's wedding.</p>
+
+                <p>The agent hit a 429 rate-limit error. Then it hit it again. And again. It didn't implement backoff. It didn't implement any kind of detection for when the same tool call returns the same error for the thirtieth consecutive time. It just kept going.</p>
+
+                <p>By Saturday morning, the cost curve had already bent upward. $42 in the first hour. $200 by hour four. By the time the developer checked his phone on Sunday afternoon, the agent had burned through $1,200.</p>
+
+                <p>He wasn't checking for an incident. He was checking for an entirely different reason. The incident had been happening for forty hours before he saw it.</p>
+
+                <!-- INTERACTIVE: cost ticker -->
+                <div class="interactive-block">
+                    <div class="caption">⏱️ Runaway cost velocity</div>
+                    <div class="cost-display"><span class="dollar">$</span><span id="cost-counter">0</span></div>
+                    <div class="cost-note">Simulated burn rate: ~$50/hour — no circuit breaker, no per-trace ceiling</div>
+                    <div class="status-row">
+                        <span class="status-dot" id="status-dot"></span>
+                        <span id="status-label">Monitoring</span>
+                    </div>
+                </div>
+
+                <p>The postmortem revealed a failure stack that had been waiting to collapse. The agent had no memory that the last several thousand attempts had hit the same wall — it treated every replan as a fresh start, with no state carried forward. Each retry was a new beginning, which meant the agent could never adapt, pause, or escalate. It was structurally incapable of learning inside a session.</p>
+
+                <p>The cost ceiling was the real surprise. The team had set a monthly budget alert at $5,000. This had felt responsible. The agent's normal monthly spend hovered around $100. A $5,000 alert was fifty times the average. It seemed safe.</p>
+
+                <p>Here's what they didn't understand until the billing console loaded: a monthly aggregate alert is for accounting, not incident response. By the time a monthly budget threshold trips, the incident has been running for days and the cost has already landed on the credit card statement. A per-trace ceiling — a hard stop at $50 or $100 per session — would have killed the run inside the first hour. Instead, the system had no stop. No enforcement point. The failure was invisible until the bill arrived.</p>
+
+                <p>The agent produced roughly 4,800 iterations per hour. To the agent, hour 47 was indistinguishable from hour 2 — same plan, same tool call, same 429, same replan. The system had no circuit breaker measuring the difference between useful work and spinning. A check for identical consecutive tool calls would have tripped on iteration 30, not iteration 4,800.</p>
+
+                <p>The final damage was $4,200 across 63 unmonitored hours. Roughly 46 times the token count of Shakespeare's complete works, without producing a single useful output.</p>
+
+                <!-- SHAREABLE PULL-QUOTE 1 -->
+                <div class="pull-quote">
+                    <blockquote>A $50 budget ceiling would have cost about half a percent of that.</blockquote>
+                    <div class="share-actions">
+                        <span>share</span>
+                        <button class="share-btn" data-share="x" data-text="'A $50 budget ceiling would have cost about half a percent of that.' — The $4,200 Weekend incident dispatch" data-url="https://iggym.github.io/ai-ops-field-notes/articles/the-4200-weekend.html">X</button>
+                        <button class="share-btn" data-share="linkedin" data-text="'A $50 budget ceiling would have cost about half a percent of that.' — The $4,200 Weekend incident dispatch" data-url="https://iggym.github.io/ai-ops-field-notes/articles/the-4200-weekend.html">in</button>
+                    </div>
+                </div>
+
+                <p>The observability tools surfaced the cost spike on Monday morning. The problem was they surfaced it alongside the damage.</p>
+
+                <p>They said, "here is what happened." They didn't say, "here is how to stop it from continuing to happen."</p>
+
+                <p>The engineer who built the agent now uses a different mental model: a stop event is an audit event. Without the stop, there's no event to review. Without the event, the failure is invisible until the billing statement arrives. The gap isn't instrumentation. It's enforcement.</p>
+            </div>
+
+            <!-- SHAREABLE PULL-QUOTE 2 — final line -->
+            <div class="pull-quote" style="margin-top:2.2rem;border-left-color:#c9543a;">
+                <blockquote>The gap isn't instrumentation. It's enforcement.</blockquote>
+                <div class="share-actions">
+                    <span>share</span>
+                    <button class="share-btn" data-share="x" data-text="'The gap isn't instrumentation. It's enforcement.' — The $4,200 Weekend incident dispatch" data-url="https://iggym.github.io/ai-ops-field-notes/articles/the-4200-weekend.html">X</button>
+                    <button class="share-btn" data-share="linkedin" data-text="'The gap isn't instrumentation. It's enforcement.' — The $4,200 Weekend incident dispatch" data-url="https://iggym.github.io/ai-ops-field-notes/articles/the-4200-weekend.html">in</button>
+                </div>
+            </div>
+
+        </article>
+
+        <footer class="footer">
+            <span class="disclosure">Composite dispatch based on real 2025–2026 incidents [citation:7][citation:12]</span>
+            <a href="https://iggym.github.io/ai-ops-field-notes/">Home</a>
+        </footer>
+    </main>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // --- progress bar ---
+            const progress = document.getElementById('progress-bar');
+            window.addEventListener('scroll', function() {
+                const scrollTop = window.scrollY;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+                progress.style.width = Math.min(pct, 100) + '%';
+            });
+
+            // --- hamburger ---
+            const hamburger = document.getElementById('hamburger');
+            const mobileMenu = document.getElementById('mobile-menu');
+            hamburger.addEventListener('click', function() {
+                const open = mobileMenu.classList.toggle('open');
+                hamburger.setAttribute('aria-expanded', open);
+            });
+
+            // --- interactive cost counter ---
+            const counterEl = document.getElementById('cost-counter');
+            const dotEl = document.getElementById('status-dot');
+            const labelEl = document.getElementById('status-label');
+
+            let dollars = 0;
+            let intervalId = null;
+
+            function updateStatus(amount) {
+                if (amount < 200) {
+                    dotEl.className = 'status-dot';
+                    labelEl.textContent = 'Running · within budget';
+                } else if (amount < 1200) {
+                    dotEl.className = 'status-dot warning';
+                    labelEl.textContent = '⚠️ Cost velocity rising';
+                } else {
+                    dotEl.className = 'status-dot critical';
+                    labelEl.textContent = '🚨 Runaway — no circuit breaker';
+                }
+            }
+
+            function tick() {
+                // accelerate slightly over time to simulate exponential cost curve
+                const increment = 0.3 + (dollars / 4000) * 0.5;
+                dollars = Math.round((dollars + increment) * 100) / 100;
+                counterEl.textContent = dollars.toFixed(0);
+                updateStatus(dollars);
+                if (dollars >= 4200) {
+                    clearInterval(intervalId);
+                    intervalId = null;
+                    labelEl.textContent = '💸 $4,200 · incident complete';
+                    dotEl.className = 'status-dot critical';
+                }
+            }
+
+            function startCounter() {
+                if (intervalId) return;
+                dollars = 0;
+                counterEl.textContent = '0';
+                dotEl.className = 'status-dot';
+                labelEl.textContent = 'Running · within budget';
+                intervalId = setInterval(tick, 80);
+            }
+
+            // start on first user interaction or after a delay
+            let started = false;
+            function initCounter() {
+                if (started) return;
+                started = true;
+                startCounter();
+            }
+
+            document.addEventListener('click', initCounter);
+            document.addEventListener('scroll', initCounter);
+            document.addEventListener('touchstart', initCounter);
+
+            // also start after 4s if no interaction
+            setTimeout(function() {
+                if (!started) {
+                    started = true;
+                    startCounter();
+                }
+            }, 4000);
+
+            // --- share buttons ---
+            document.querySelectorAll('.share-btn').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const platform = this.dataset.share;
+                    const text = this.dataset.text || '';
+                    const url = this.dataset.url || window.location.href;
+                    const shareText = text + ' ' + url;
+                    let shareUrl = '';
+                    if (platform === 'x') {
+                        shareUrl = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText);
+                    } else if (platform === 'linkedin') {
+                        shareUrl = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url) +
+                            '&summary=' + encodeURIComponent(text);
+                    }
+                    if (shareUrl) {
+                        window.open(shareUrl, '_blank', 'width=600,height=500,menubar=no,toolbar=no');
+                    }
+                });
+            });
+
+            // --- prefers-reduced-motion: stop the counter animation if needed ---
+            const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+            if (motionQuery.matches) {
+                if (intervalId) {
+                    clearInterval(intervalId);
+                    intervalId = null;
+                }
+                labelEl.textContent = '⏸️ Motion reduced';
+                dotEl.className = 'status-dot';
+            }
+
+        })();
+    </script>
+</body>
+</html>
