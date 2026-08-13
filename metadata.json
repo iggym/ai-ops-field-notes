@@ -29,5 +29,32 @@
   "reading_time_minutes": 3,
   "pinned": false,
   "research_window": "2026-01-29 to 2026-03-12"
-}]
+},{
+  "id": "0014",
+  "slug": "the-commit-that-never-happened",
+  "title": "The Commit That Never Happened",
+  "hook": "Floating model aliases are unversioned dependencies running third-party code in your production path.",
+  "path": "articles/the-commit-that-never-happened.html",
+  "date": "2026-01-14",
+  "status": "published",
+  "format": "dispatch",
+  "tags": ["model-drift", "json-schema", "api-reliability"],
+  "reading_time_minutes": 3,
+  "pinned": false,
+  "research_window": "2025-12-03 to 2026-01-14"
+},{
+  "id": "0217",
+  "slug": "green-alerts-silent-rag",
+  "title": "Green alerts, silent RAG",
+  "hook": "The page that caught this came from a person, not a pager. The pager was green.",
+  "path": "articles/green-alerts-silent-rag.html",
+  "date": "2025-02-17",
+  "status": "published",
+  "format": "dispatch",
+  "tags": ["dependency-outage", "observability-gap", "partial-outage"],
+  "reading_time_minutes": 3,
+  "pinned": false,
+  "research_window": "2025-01-06 to 2025-02-17"
+}
+  ]
 }
