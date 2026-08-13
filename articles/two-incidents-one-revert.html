@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Two incidents, one revert — AI Ops Field Notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#09090b;--surface:#18181b;--text:#e4e4e7;--text-dim:#71717a;
+      --accent:#ef4444;--green:#22c55e;--yellow:#eab308;--border:#27272a;
+      --glass:rgba(9,9,11,0.82);
+    }
+    html{scroll-behavior:smooth}
+    body{
+      font-family:'IBM Plex Serif',Georgia,serif;background:var(--bg);
+      color:var(--text);line-height:1.8;min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+    }
+    /* progress */
+    #progress{position:fixed;top:0;left:0;height:2px;background:var(--accent);z-index:200;width:0%}
+    /* topbar */
+    #topbar{
+      position:sticky;top:0;z-index:100;
+      backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      background:var(--glass);border-bottom:1px solid var(--border);
+      padding:.6rem 1.5rem;display:flex;align-items:center;justify-content:space-between;
+      font-family:'IBM Plex Mono',monospace;font-size:.78rem;
+    }
+    #topbar a{color:var(--text-dim);text-decoration:none;transition:color .15s}
+    #topbar a:hover{color:var(--text)}
+    .tb-l{display:flex;align-items:center;gap:1.25rem}
+    .tb-r{color:var(--text-dim);font-size:.72rem}
+    .ham{
+      display:none;cursor:pointer;font-size:1.15rem;color:var(--text-dim);
+      background:none;border:none;padding:0;
+    }
+    .tb-nav{display:flex;gap:1rem}
+    @media(max-width:600px){
+      .ham{display:inline-block}
+      .tb-nav{display:none}
+      .tb-nav.open{
+        display:flex;flex-direction:column;gap:.5rem;position:absolute;
+        top:100%;left:0;right:0;background:var(--surface);
+        padding:.75rem 1.5rem;border-bottom:1px solid var(--border);
+      }
+    }
+    /* main */
+    main{max-width:620px;margin:0 auto;padding:3rem 1.5rem 4rem}
+    .hero-title{
+      font-size:clamp(1.7rem,4vw,2.4rem);font-weight:600;line-height:1.15;
+      margin-bottom:.6rem;letter-spacing:-.01em;
+    }
+    .hero-meta{
+      font-family:'IBM Plex Mono',monospace;font-size:.75rem;
+      color:var(--text-dim);margin-bottom:2.5rem;
+    }
+    .dispatch-body p{margin-bottom:1.2rem}
+    /* interactive moment */
+    .im{
+      background:var(--surface);border:1px solid var(--border);border-radius:6px;
+      padding:1.25rem 1.5rem;margin:2rem -.25rem;
+      font-family:'IBM Plex Mono',monospace;font-size:.78rem;
+    }
+    .im-cap{
+      color:var(--text-dim);font-size:.68rem;margin-bottom:.85rem;
+      text-transform:uppercase;letter-spacing:.08em;
+    }
+    .im-row{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:.45rem 0;border-bottom:1px solid var(--border);font-size:.74rem;
+    }
+    .im-row:last-of-type{border-bottom:none}
+    .im-l{display:flex;align-items:center;gap:.45rem;color:var(--text-dim)}
+    .im-r{font-weight:500;font-size:.74rem}
+    .dim-tag{
+      display:inline-block;padding:.1rem .45rem;border-radius:3px;
+      font-size:.7rem;font-weight:500;
+    }
+    .dim-ok{background:rgba(34,197,94,.12);color:var(--green)}
+    .dim-bad{background:rgba(239,68,68,.12);color:var(--accent)}
+    .sim-ok{color:var(--green)}
+    .sim-err{color:var(--accent);font-weight:500}
+    .sim-warn{color:var(--yellow);font-size:.68rem}
+    .im-note{
+      color:var(--yellow);font-size:.66rem;margin-top:.6rem;
+      opacity:0;transition:opacity .35s;line-height:1.4;
+    }
+    .im-note.vis{opacity:1}
+    .im-btn{
+      display:inline-block;margin-top:.85rem;padding:.35rem .75rem;
+      background:transparent;border:1px solid var(--border);color:var(--text-dim);
+      border-radius:4px;cursor:pointer;font-family:'IBM Plex Mono',monospace;
+      font-size:.7rem;transition:color .15s,border-color .15s;margin-right:.4rem;
+    }
+    .im-btn:hover{color:var(--text);border-color:var(--text-dim)}
+    .im-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    /* pull-quote */
+    .pq{
+      border-left:3px solid var(--accent);padding-left:1rem;
+      margin:2rem 0;font-style:italic;
+    }
+    .pq-txt{margin-bottom:.4rem}
+    .shr-row{display:flex;gap:.4rem}
+    .shr{
+      display:inline-flex;align-items:center;gap:.25rem;
+      padding:.2rem .5rem;background:var(--surface);border:1px solid var(--border);
+      color:var(--text-dim);border-radius:3px;cursor:pointer;
+      font-family:'IBM Plex Mono',monospace;font-size:.65rem;
+      text-decoration:none;transition:color .15s,border-color .15s;
+    }
+    .shr:hover{color:var(--text);border-color:var(--text-dim)}
+    .shr:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    /* footer */
+    footer{
+      max-width:620px;margin:0 auto;padding:2rem 1.5rem;
+      border-top:1px solid var(--border);
+      font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--text-dim);
+    }
+    footer a{color:var(--text-dim);text-decoration:none}
+    footer a:hover{color:var(--text)}
+    /* reduced motion */
+    @media(prefers-reduced-motion:reduce){
+      #progress{transition:none!important}
+      html{scroll-behavior:auto!important}
+      .im-note{transition:none!important}
+    }
+  </style>
+</head>
+<body>
+  <div id="progress"></div>
+
+  <header id="topbar">
+    <div class="tb-l">
+      <a href="https://iggym.github.io/ai-ops-field-notes/">Home</a>
+      <button class="ham" onclick="document.querySelector('.tb-nav').classList.toggle('open')" aria-label="Toggle menu">☰</button>
+      <nav class="tb-nav">
+        <a href="https://iggym.github.io/ai-ops-field-notes/">Field Notes</a>
+      </nav>
+    </div>
+    <div class="tb-r">3 min read</div>
+  </header>
+
+  <main>
+    <article>
+      <h1 class="hero-title">Two incidents, one revert</h1>
+      <div class="hero-meta">2025-04-22 · dispatch</div>
+
+      <div class="dispatch-body">
+        <p>The quality alert came in at 3:17 AM. The team had rolled model v2.8 to production six hours earlier, and automated evaluation was flagging a 12% drop in answer relevance. The on-call engineer confirmed it — v2.8's outputs were measurably worse. The decision took ninety seconds: roll back to v2.7, the last known-good version.</p>
+
+        <p>The rollback completed at 3:34 AM. The quality alert cleared. For four minutes, everything looked fixed.</p>
+
+        <p>Then the search-alert fired. Every RAG query was returning zero results. Not degraded results — zero. The retrieval pipeline was hard-failing with dimension-mismatch errors from the vector database.</p>
+
+        <p>Here's what the rollback hadn't accounted for: during the six hours v2.8 ran in production, it had been writing embeddings to the vector store using its 1536-dimensional output space. The previous model, v2.7, used 768 dimensions. The rollback restored the model to v2.7, but it didn't touch the vectors v2.8 had already written. Now v2.7 was trying to compute cosine similarity between 768-dimensional query vectors and 1536-dimensional document vectors. Every single comparison failed.</p>
+
+        <!-- interactive moment -->
+        <div class="im" role="region" aria-label="Retrieval state simulation">
+          <div class="im-cap">Same query. Incompatible vectors.</div>
+
+          <div class="im-row">
+            <div class="im-l">Model version</div>
+            <div class="im-r" id="m-ver" style="color:var(--text-dim)">v2.8</div>
+          </div>
+          <div class="im-row">
+            <div class="im-l">Query embedding</div>
+            <div class="im-r"><span class="dim-tag dim-ok" id="q-dim">1536d</span></div>
+          </div>
+          <div class="im-row">
+            <div class="im-l">Stored embedding</div>
+            <div class="im-r"><span class="dim-tag dim-ok" id="s-dim">1536d</span></div>
+          </div>
+          <div class="im-row">
+            <div class="im-l">Cosine similarity</div>
+            <div class="im-r sim-ok" id="sim-val">✓ 0.87</div>
+          </div>
+          <div class="im-row">
+            <div class="im-l">Retrieval</div>
+            <div class="im-r sim-ok" id="ret-val">OK</div>
+          </div>
+
+          <div class="im-note" id="im-note">⚠ Stored vectors were written by v2.8 (1536d). v2.7 produces 768d queries — dimension mismatch on every comparison.</div>
+
+          <button class="im-btn" id="im-go" onclick="doRollback()">Roll back to v2.7</button>
+          <button class="im-btn" id="im-rst" onclick="doReset()" style="display:none">Reset</button>
+        </div>
+
+        <p>The on-call engineer had two options, both bad. Roll forward to v2.8 again — but v2.8 still had the quality problem that triggered the rollback in the first place. Stay on v2.7 — but search was completely broken, which was worse than degraded quality. She was stuck between the original incident and a new one the revert had created.</p>
+
+        <div class="pq">
+          <div class="pq-txt">"She was stuck between the original incident and a new one the revert had created."</div>
+          <div class="shr-row">
+            <button class="shr" onclick="shX('She was stuck between the original incident and a new one the revert had created.')" aria-label="Share on X">𝕏</button>
+            <button class="shr" onclick="shLI()" aria-label="Share on LinkedIn">in</button>
+          </div>
+        </div>
+
+        <p>The third path took forty minutes to find: re-index the affected vectors using v2.7's embedding model, then run a backfill from the source documents. It worked, but it meant ~340,000 documents re-embedded at 3 AM while the team held their breath watching error rates. The full recovery took 67 minutes. The original quality incident had lasted six hours. The rollback incident added another 67 minutes of total search outage on top.</p>
+
+        <p>Nobody had tested the rollback path against the current state of the vector store. The rollback procedure assumed the system would look the same as it did when v2.7 was last in production. It didn't. The new model had mutated the data layer in a way the old model couldn't read, and the rollback script had no step for that.</p>
+
+        <p>What this left behind: a rollback is not a time machine — it rewinds code, not data, and any data the newer version wrote in a format the older version can't parse becomes an instant second incident. Rollback safety for AI systems requires a compatibility check against the current data state, not just a version revert; if your embedding dimensions changed, rolling back the model without re-indexing is a loaded gun. And the moment you realize the revert made things worse, you're in the worst position on-call: you can't go forward, you can't stay back, and you need a creative third path that nobody scripted at 3 AM.</p>
+
+        <div class="pq">
+          <div class="pq-txt">"The rollback fixed the alert. Then the rollback became the incident."</div>
+          <div class="shr-row">
+            <button class="shr" onclick="shX('The rollback fixed the alert. Then the rollback became the incident.')" aria-label="Share on X">𝕏</button>
+            <button class="shr" onclick="shLI()" aria-label="Share on LinkedIn">in</button>
+          </div>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>Composite dispatch based on documented embedding-migration failure patterns and rollback blast-radius incidents. No specific company incident referenced.</p>
+    <p style="margin-top:.5rem"><a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a></p>
+  </footer>
+
+  <script>
+    /* progress */
+    const pr=document.getElementById('progress');
+    window.addEventListener('scroll',()=>{
+      const h=document.documentElement;
+      pr.style.width=Math.min(h.scrollTop/(h.scrollHeight-h.clientHeight)*100,100)+'%';
+    });
+
+    /* interactive: rollback simulation */
+    let rolledBack=false;
+    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/two-incidents-one-revert.html';
+
+    function doRollback(){
+      if(rolledBack)return;
+      rolledBack=true;
+      document.getElementById('m-ver').textContent='v2.7';
+      const qd=document.getElementById('q-dim');
+      qd.textContent='768d';qd.className='dim-tag dim-bad';
+      const sd=document.getElementById('s-dim');
+      sd.textContent='1536d';sd.className='dim-tag dim-bad';
+      const sv=document.getElementById('sim-val');
+      sv.textContent='✗ UNDEFINED';sv.className='im-r sim-err';
+      const rv=document.getElementById('ret-val');
+      rv.textContent='DIMENSION MISMATCH';rv.className='im-r sim-err';
+      document.getElementById('im-note').classList.add('vis');
+      document.getElementById('im-go').style.display='none';
+      document.getElementById('im-rst').style.display='inline-block';
+    }
+
+    function doReset(){
+      rolledBack=false;
+      document.getElementById('m-ver').textContent='v2.8';
+      const qd=document.getElementById('q-dim');
+      qd.textContent='1536d';qd.className='dim-tag dim-ok';
+      const sd=document.getElementById('s-dim');
+      sd.textContent='1536d';sd.className='dim-tag dim-ok';
+      const sv=document.getElementById('sim-val');
+      sv.textContent='✓ 0.87';sv.className='im-r sim-ok';
+      const rv=document.getElementById('ret-val');
+      rv.textContent='OK';rv.className='im-r sim-ok';
+      document.getElementById('im-note').classList.remove('vis');
+      document.getElementById('im-go').style.display='inline-block';
+      document.getElementById('im-rst').style.display='none';
+    }
+
+    /* share */
+    function shX(txt){
+      const full=txt+' — Two incidents, one revert';
+      window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(full),'_blank');
+    }
+    function shLI(){
+      window.open('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(ART_URL),'_blank');
+    }
+  </script>
+</body>
+</html>
