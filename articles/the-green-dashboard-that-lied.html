@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Green Dashboard That Lied - AI Ops Field Notes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d1117;
+            --card-bg: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-heading: #f0f6fc;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --danger: #f85149;
+            --success: #3fb950;
+            --warning: #d29922;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-sans);
+            line-height: 1.7;
+            padding-bottom: 60px;
+        }
+
+        #progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: var(--accent);
+            width: 0%;
+            z-index: 1000;
+            transition: width 0.1s ease;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            background: rgba(13, 17, 23, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 900;
+        }
+
+        .topbar a {
+            color: var(--text-heading);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .topbar a:hover {
+            color: var(--accent);
+        }
+
+        .meta-info {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .container {
+            max-width: 620px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        header {
+            margin-bottom: 32px;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(88, 166, 255, 0.1);
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            margin-bottom: 12px;
+            border: 1px solid rgba(88, 166, 255, 0.2);
+        }
+
+        h1 {
+            color: var(--text-heading);
+            font-size: clamp(1.7rem, 4vw, 2.4rem);
+            line-height: 1.25;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+        }
+
+        .dispatch-date {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .content p {
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+
+        .interactive-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 32px 0;
+        }
+
+        .interactive-title {
+            font-size: 0.85rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .dashboard-sim {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--bg);
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
+
+        .status-badge {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-green {
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--success);
+        }
+
+        .status-red {
+            background: rgba(248, 81, 73, 0.15);
+            color: var(--danger);
+        }
+
+        .pull-quote {
+            border-left: 3px solid var(--accent);
+            padding: 12px 0 12px 20px;
+            margin: 28px 0;
+            background: rgba(22, 27, 34, 0.5);
+            border-radius: 0 6px 6px 0;
+        }
+
+        .pull-quote p {
+            font-size: 1.1rem;
+            color: var(--text-heading);
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .share-btn {
+            background: var(--border);
+            color: var(--text);
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .share-btn:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #progress {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="progress"></div>
+
+    <div class="topbar">
+        <a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a>
+        <div class="meta-info">3 min read</div>
+    </div>
+
+    <div class="container">
+        <header>
+            <span class="tag">DISPATCH #011</span>
+            <h1>The Green Dashboard That Lied</h1>
+            <div class="dispatch-date">MARCH 12, 2026</div>
+        </header>
+
+        <div class="content">
+            <p>The alerts didn't fire. Datadog was a tranquil sea of green at 03:00 UTC. p99 latency sat neatly at 180 milliseconds, error rates hovered at 0.001%, and the GPU clusters were humming along at optimal load.</p>
+
+            <p>Then the VP of Operations called at 06:15 AM.</p>
+
+            <p>None of the night shift’s discharge summaries had generated billing codes. Four thousand patient charts had passed through the pipeline overnight. Every single chart was marked as successfully processed in the logs. Every single chart had an empty billing array.</p>
+
+            <div class="interactive-container">
+                <div class="interactive-title">Live Telemetry vs Business State</div>
+                <div class="dashboard-sim">
+                    <div class="metric-row">
+                        <span>HTTP Status (200 OK)</span>
+                        <span class="status-badge status-green">99.99%</span>
+                    </div>
+                    <div class="metric-row">
+                        <span>Pipeline Exception Rate</span>
+                        <span class="status-badge status-green">0.00%</span>
+                    </div>
+                    <div class="metric-row">
+                        <span>Extracted Billing Array Length</span>
+                        <span class="status-badge status-red">0 items (Empty)</span>
+                    </div>
+                </div>
+            </div>
+
+            <p>The primary model provider had quietly rolled an update to their structured JSON enforcement engine around 16:00 UTC the previous day. Up until that deploy, requesting <code>structured_analysis</code> returned a flat JSON object with a root key named <code>billing_codes</code>. After the deploy, the provider’s parser began nesting those codes under a newly introduced <code>diagnostics</code> parent key.</p>
+
+            <p>Because the API response still returned HTTP 200 OK, the API client didn't retry. Because the extraction logic used a safe-navigation getter (<code>data.get('billing_codes', [])</code>), the code didn't crash. It simply grabbed the default empty list and moved on. The pipeline faithfully saved thousands of blank billing records to PostgreSQL, stamped the job as completed, and sent a success metric to StatsD.</p>
+
+            <div class="pull-quote">
+                <p>The system worked perfectly according to every system metric configured. It was completely broken according to the business.</p>
+                <div class="share-buttons">
+                    <a class="share-btn" href="https://twitter.com/intent/tweet?text=The%20system%20worked%20perfectly%20according%20to%20every%20system%20metric%20configured.%20It%20was%20completely%20broken%20according%20to%20the%20business.&url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on X</a>
+                    <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on LinkedIn</a>
+                </div>
+            </div>
+
+            <p>It took three hours of frantic debugging to realize the code wasn't failing—it was succeeding at doing nothing. The telemetry tracked execution completion, not payload validity. The team was monitoring the pipe, not what was flowing through it.</p>
+
+            <div class="pull-quote">
+                <p>When your primary dependency is a probabilistic black box managed by a third party, a 200 OK status code isn't a success signal. It's just an acknowledgment that your request arrived.</p>
+                <div class="share-buttons">
+                    <a class="share-btn" href="https://twitter.com/intent/tweet?text=When%20your%20primary%20dependency%20is%20a%20probabilistic%20black%20box%20managed%20by%20a%20third%20party%2C%20a%20200%20OK%20status%20code%20isn%27t%20a%20success%20signal.&url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on X</a>
+                    <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on LinkedIn</a>
+                </div>
+            </div>
+
+            <p>Four lines of runtime validation fixed the immediate issue. The real fix took longer: rewriting every health check to validate schema completeness instead of HTTP status codes.</p>
+        </div>
+
+        <footer>
+            <p>Composite case analysis based on real-world incident patterns.</p>
+            <p><a href="https://iggym.github.io/ai-ops-field-notes/">Return to AI Ops Field Notes Index</a></p>
+        </footer>
+    </div>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progress').style.width = scrolled + '%';
+        });
+    </script>
+</body>
+</html>
