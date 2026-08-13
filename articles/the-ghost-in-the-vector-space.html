@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Ghost in the Vector Space | AI Ops Field Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1115;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #f59e0b; /* Amber for drift */
+    --card: #1e222b;
+    --border: #333842;
+    --green: #10b981;
+    --blue: #3b82f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 17px;
+  }
+  #progress {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: var(--accent); width: 0%; z-index: 101;
+    transition: width 0.1s linear;
+  }
+  #topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(15, 17, 21, 0.8);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.8rem 1.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .logo { font-weight: 700; font-size: 1.1rem; color: #fff; text-decoration: none;}
+  .nav-links { display: flex; gap: 1.5rem; align-items: center; font-size: 0.9rem; color: var(--muted);}
+  .nav-links a { color: var(--muted); text-decoration: none; }
+  .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+  
+  main {
+    max-width: 620px; margin: 0 auto; padding: 2rem 1.5rem 4rem;
+  }
+  h1 {
+    font-size: clamp(1.7rem, 4vw, 2.4rem);
+    line-height: 1.2; margin-bottom: 1rem; font-weight: 700;
+  }
+  .meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 2.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;}
+  p { margin-bottom: 1.5rem; }
+  code { background: #1a1d24; padding: 2px 6px; border-radius: 4px; color: #f59e0b; font-size: 0.9em;}
+  
+  /* Pull Quotes */
+  .pull-quote {
+    border-left: 3px solid var(--accent);
+    padding: 1rem 1.5rem;
+    margin: 2.5rem 0;
+    background: rgba(245, 158, 11, 0.05);
+    font-weight: 500;
+    font-size: 1.1rem;
+    position: relative;
+  }
+  .share-icons {
+    display: flex; gap: 1rem; margin-top: 0.8rem;
+  }
+  .share-icons a {
+    color: var(--muted); transition: color 0.2s;
+    display: flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; text-decoration: none;
+  }
+  .share-icons a:hover { color: #fff; }
+
+  /* Simulator */
+  .simulator {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.5rem; margin: 2.5rem 0;
+  }
+  .sim-header { display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;}
+  .sim-caption { font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;}
+  
+  .sim-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;
+    align-items: center;
+  }
+  
+  .canvas-wrap {
+    background: #0b0c0f; border: 1px solid var(--border); border-radius: 4px;
+    aspect-ratio: 1; position: relative; overflow: hidden;
+  }
+  canvas { width: 100%; height: 100%; }
+  
+  .gauge-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  }
+  .gauge {
+    width: 120px; height: 120px; border-radius: 50%;
+    background: conic-gradient(var(--green) 0deg 352deg, #333 352deg 360deg);
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.3s ease;
+  }
+  .gauge.drifted {
+    background: conic-gradient(var(--green) 0deg 352deg, #333 352deg 360deg);
+  }
+  .gauge-inner {
+    width: 90px; height: 90px; background: #1e222b; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem;
+  }
+  .gauge-label { font-size: 0.8rem; color: var(--muted); }
+
+  button {
+    width: 100%;
+    padding: 0.8rem 1.2rem; border-radius: 4px; font-weight: 600; cursor: pointer;
+    border: none; font-size: 0.95rem; transition: opacity 0.2s;
+    background: var(--accent); color: #000;
+  }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  footer {
+    border-top: 1px solid var(--border); margin-top: 4rem; padding-top: 2rem;
+    font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between;
+  }
+  footer a { color: var(--muted); text-decoration: underline; }
+
+  @media (max-width: 600px) {
+    .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--card); flex-direction: column; padding: 1rem; border-bottom: 1px solid var(--border);}
+    .nav-links.active { display: flex; }
+    .hamburger { display: block; }
+    .sim-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<header id="topbar">
+  <a href="https://iggym.github.io/ai-ops-field-notes/" class="logo">AI Ops Field Notes</a>
+  <nav class="nav-links">
+    <span>~3 min read</span>
+    <a href="https://iggym.github.io/ai-ops-field-notes/">Home</a>
+  </nav>
+  <button class="hamburger" aria-label="Menu">☰</button>
+</header>
+
+<main>
+  <h1>The Ghost in the Vector Space</h1>
+  <div class="meta">Dispatch · February 24, 2026 · Window: Jan 13 – Feb 24</div>
+
+  <p>Tuesday, 3:14 AM. The PagerDuty alert doesn't say "500s." It says: <code>Embedding Drift Detected: PSI > 0.25 on Intent Classifier.</code></p>
+
+  <p>The on-call engineer rubs his eyes. The primary LLM routing agent is supposedly hallucinating. He pulls up the tracing dashboard. The input vectors—usually a soft, predictable cloud across the latent space—are suddenly clustered in a bizarre, tight knot in the upper-left quadrant.</p>
+
+  <p>The team spins up a war room. The assumption is immediate: the vector database is corrupted, or a newly deployed prompt template is poisoning the embeddings. For four hours, they diff commits, roll back RAG pipelines, and run shadow evaluations on yesterday's traffic. They are chasing a ghost.</p>
+
+  <p>BEFORE: The engineer assumes the AI model has degraded and is actively hallucinating intents.<br>
+  AFTER: He realizes the AI is working perfectly; it's the upstream data that broke.</p>
+
+  <p>The turn happens when they finally pull the raw text of the "drifted" inputs. It isn't English. It isn't even text.</p>
+
+  <div class="simulator">
+    <div class="sim-header">
+      <span class="sim-caption">Watch the latent space panic while the model stays perfectly calm.</span>
+    </div>
+    <div class="sim-grid">
+      <div class="canvas-wrap">
+        <canvas id="driftCanvas"></canvas>
+      </div>
+      <div class="gauge-wrap">
+        <div class="gauge" id="evalGauge">
+          <div class="gauge-inner">98%</div>
+        </div>
+        <span class="gauge-label">Eval Accuracy</span>
+      </div>
+    </div>
+    <button id="btnTrigger">Trigger 3rd-Party Integration Update</button>
+  </div>
+
+  <p>At midnight, a new third-party billing integration had gone live. The vendor pushed an update that sent raw base64-encoded binary blobs instead of plaintext JSON. The embedding model did exactly what it was trained to do: it mapped the gibberish to a dense cluster of nonsense vectors.</p>
+
+  <p>This is the curse of leading indicators. Drift without eval impact is a false alarm that just burns on-call hours. The alert was technically true—the input distribution had violently shifted. But it was functionally false. The model’s actual understanding of valid customer intents hadn't changed at all. The monitoring system panicked because the shape of the world changed, not because the model was failing.</p>
+
+  <div class="pull-quote">
+    Drift without eval impact is a false alarm that just burns on-call hours.
+    <div class="share-icons">
+      <a href="https://twitter.com/intent/tweet?text=Drift%20without%20eval%20impact%20is%20a%20false%20alarm%20that%20just%20burns%20on-call%20hours.&url=https%3A%2F%2Figgym.github.io%2Fai-ops-field-notes%2F" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+        Post
+      </a>
+      <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Figgym.github.io%2Fai-ops-field-notes%2F" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path></svg>
+        Share
+      </a>
+    </div>
+  </div>
+
+  <p>The postmortem doesn't feature a prompt rewrite. It features a schema validator.</p>
+
+  <p>First, they implement a strict input gate. Raw payloads must pass a JSON schema validation before they ever touch the embedding model. The latent space is for semantic reasoning, not a trash can for malformed upstream data.</p>
+
+  <p>Second, they pair their drift monitors with lagging indicators. If the Population Stability Index spikes, the alerting system now checks a shadow evaluation pipeline. If the model's accuracy on a holdout set remains flat, the Sev-2 page is automatically downgraded to a morning Slack warning.</p>
+
+  <div class="pull-quote">
+    When you rely solely on embedding geometry to monitor your AI, you aren't measuring intelligence. You are measuring how often your partners break their API contracts.
+    <div class="share-icons">
+      <a href="https://twitter.com/intent/tweet?text=When%20you%20rely%20solely%20on%20embedding%20geometry%20to%20monitor%20your%20AI%2C%20you%20aren't%20measuring%20intelligence.%20You%20are%20measuring%20how%20often%20your%20partners%20break%20their%20API%20contracts.&url=https%3A%2F%2Figgym.github.io%2Fai-ops-field-notes%2F" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+        Post
+      </a>
+      <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Figgym.github.io%2Fai-ops-field-notes%2F" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path></svg>
+        Share
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <span>Composite dispatch based on embedding drift alert patterns.</span>
+    <a href="https://iggym.github.io/ai-ops-field-notes/">Home</a>
+  </footer>
+</main>
+
+<script>
+  // Progress Bar
+  window.addEventListener('scroll', () => {
+    const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrolled = (winScroll / height) * 100;
+    document.getElementById("progress").style.width = scrolled + "%";
+  });
+
+  // Mobile Nav
+  document.querySelector('.hamburger').addEventListener('click', () => {
+    document.querySelector('.nav-links').classList.toggle('active');
+  });
+
+  // Canvas Scatter Plot Logic
+  const canvas = document.getElementById('driftCanvas');
+  const ctx = canvas.getContext('2d');
+  const btnTrigger = document.getElementById('btnTrigger');
+
+  let width, height;
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    width = rect.width * window.devicePixelRatio;
+    height = rect.height * window.devicePixelRatio;
+    canvas.width = width;
+    canvas.height = height;
+    drawNormalState();
+  }
+
+  function drawDot(x, y, color) {
+    ctx.beginPath();
+    ctx.arc(x, y, 4 * window.devicePixelRatio, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+
+  function drawNormalState() {
+    ctx.clearRect(0, 0, width, height);
+    // Draw grid lines for context
+    ctx.strokeStyle = '#333842';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(width / 2, 0); ctx.lineTo(width / 2, height);
+    ctx.moveTo(0, height / 2); ctx.lineTo(width, height / 2);
+    ctx.stroke();
+
+    // Draw normal blue dots in a circular cloud
+    for (let i = 0; i < 150; i++) {
+      const r = Math.sqrt(Math.random()) * (width * 0.35);
+      const theta = Math.random() * 2 * Math.PI;
+      const x = width / 2 + r * Math.cos(theta);
+      const y = height / 2 + r * Math.sin(theta);
+      drawDot(x, y, '#3b82f6');
+    }
+  }
+
+  function triggerDrift() {
+    // Draw dense cluster of red dots in upper-left
+    const clusterX = width * 0.2;
+    const clusterY = height * 0.2;
+    
+    for (let i = 0; i < 80; i++) {
+      const r = Math.random() * (width * 0.05);
+      const theta = Math.random() * 2 * Math.PI;
+      const x = clusterX + r * Math.cos(theta);
+      const y = clusterY + r * Math.sin(theta);
+      drawDot(x, y, '#f59e0b');
+    }
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  btnTrigger.addEventListener('click', () => {
+    btnTrigger.disabled = true;
+    btnTrigger.textContent = "Drift Alert Triggered (PSI > 0.25)";
+    btnTrigger.style.background = '#333';
+    btnTrigger.style.color = '#f59e0b';
+    triggerDrift();
+  });
+</script>
+</body>
+</html>
