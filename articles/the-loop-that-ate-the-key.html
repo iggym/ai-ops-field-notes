@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Loop That Ate The Key - AI Ops Field Notes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d1117;
+            --card-bg: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-heading: #f0f6fc;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --danger: #f85149;
+            --success: #3fb950;
+            --warning: #d29922;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-sans);
+            line-height: 1.7;
+            padding-bottom: 60px;
+        }
+
+        #progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: var(--accent);
+            width: 0%;
+            z-index: 1000;
+            transition: width 0.1s ease;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            background: rgba(13, 17, 23, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 900;
+        }
+
+        .topbar a {
+            color: var(--text-heading);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .topbar a:hover {
+            color: var(--accent);
+        }
+
+        .meta-info {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .container {
+            max-width: 620px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        header {
+            margin-bottom: 32px;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(88, 166, 255, 0.1);
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            margin-bottom: 12px;
+            border: 1px solid rgba(88, 166, 255, 0.2);
+        }
+
+        h1 {
+            color: var(--text-heading);
+            font-size: clamp(1.7rem, 4vw, 2.4rem);
+            line-height: 1.25;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+        }
+
+        .dispatch-date {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .content p {
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+
+        .interactive-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 32px 0;
+        }
+
+        .interactive-title {
+            font-size: 0.85rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            font-family: var(--font-mono);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-heading);
+        }
+
+        .stat-value.danger {
+            color: var(--danger);
+        }
+
+        .pull-quote {
+            border-left: 3px solid var(--accent);
+            padding: 12px 0 12px 20px;
+            margin: 28px 0;
+            background: rgba(22, 27, 34, 0.5);
+            border-radius: 0 6px 6px 0;
+        }
+
+        .pull-quote p {
+            font-size: 1.05rem;
+            color: var(--text-heading);
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .share-btn {
+            background: var(--border);
+            color: var(--text);
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .share-btn:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #progress {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="progress"></div>
+
+    <div class="topbar">
+        <a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a>
+        <div class="meta-info">3 min read</div>
+    </div>
+
+    <div class="container">
+        <header>
+            <span class="tag">DISPATCH #021</span>
+            <h1>The Loop That Ate The Key</h1>
+            <div class="dispatch-date">MAY 20, 2026</div>
+        </header>
+
+        <div class="content">
+            <p>It started with a single customer uploading a scanned invoice containing zero bytes of valid text.</p>
+
+            <p>At 11:04 AM, the background worker picked up the job. The worker ran an autonomous agent tasked with extracting key-value pairs from documents. When the PDF parser tool failed on the empty document, it returned a standard Python exception: <code>UnicodeDecodeError: 'utf-8' codec can't decode byte</code>.</p>
+
+            <p>Instead of crashing the job, the framework did what its prompt instructed: it caught the error, appended the full stack trace to the agent's memory, and asked the model to try a different extraction strategy.</p>
+
+            <p>The model tried again. It called the parser tool with a different encoding flag. The parser failed again. The framework appended <em>that</em> stack trace as well.</p>
+
+            <div class="interactive-container">
+                <div class="interactive-title">Agent Retry Storm Dynamics</div>
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Iter 1 Context</span>
+                        <span class="stat-value">1,500 tokens</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Iter 15 Context</span>
+                        <span class="stat-value">64,000 tokens</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Total Spend</span>
+                        <span class="stat-value danger">$2,200.00</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Active Threads</span>
+                        <span class="stat-value danger">1 Thread</span>
+                    </div>
+                </div>
+            </div>
+
+            <p>In traditional software, a retry loop executes the same function N times. The cost is linear. In an LLM agentic loop, every retry appends the failure history to the context window. Attempt 1 sent 1,500 tokens. Attempt 5 sent 12,000 tokens. Attempt 15 sent 64,000 tokens of nested stack traces, previous attempts, and system instructions.</p>
+
+            <div class="pull-quote">
+                <p>In an LLM agentic loop, retries don't scale linearly—they scale quadratically as context windows swell with past stack traces.</p>
+                <div class="share-buttons">
+                    <a class="share-btn" href="https://twitter.com/intent/tweet?text=In%20an%20LLM%20agentic%20loop%2C%20retries%20don%27t%20scale%20linearly%E2%80%94they%20scale%20quadratically%20as%20context%20windows%20swell.&url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on X</a>
+                    <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on LinkedIn</a>
+                </div>
+            </div>
+
+            <p>By 11:18 AM, the single thread wasn't just retrying—it was firing ten requests a second. The model was spending 90% of its execution time processing its own past mistakes.</p>
+
+            <p>At 11:22 AM, PagerDuty alerted on a total API outage across all production services. Every application using the primary LLM client key was receiving HTTP 429 Rate Limit Exceeded errors. The engineering team assumed they were under an external credential-stuffing attack or facing an upstream provider degradation.</p>
+
+            <p>The worker was stuck in a tight loop at iteration #84. It had consumed $2,200 worth of API credits in thirty-two minutes before running out of quota and taking down the rest of the company's production pipelines with it.</p>
+
+            <p>The immediate fix was a hard execution cap: maximum 5 tool calls per agent invocation, period. The real architecture fix was removing raw exception strings from the agent's context window entirely.</p>
+
+            <div class="pull-quote">
+                <p>When you build agentic loops, never let an LLM decide when to stop trying.</p>
+                <div class="share-buttons">
+                    <a class="share-btn" href="https://twitter.com/intent/tweet?text=When%20you%20build%20agentic%20loops%2C%20never%20let%20an%20LLM%20decide%20when%20to%20stop%20trying.&url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on X</a>
+                    <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on LinkedIn</a>
+                </div>
+            </div>
+
+            <p>Software fails deterministically, but an agent fed its own error logs will burn down your entire infrastructure budget trying to prove it can fix them.</p>
+        </div>
+
+        <footer>
+            <p>Composite case analysis based on autonomous agent retry loop failures.</p>
+            <p><a href="https://iggym.github.io/ai-ops-field-notes/">Return to AI Ops Field Notes Index</a></p>
+        </footer>
+    </div>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progress').style.width = scrolled + '%';
+        });
+    </script>
+</body>
+</html>
