@@ -16,5 +16,18 @@
   "reading_time_minutes": 5,
   "tags": ["invisible-incident", "llm-observability", "semantic-canary", "caching-failure"],
   "path": "articles/when-green-means-dead.html"
+},{
+  "id": "0011",
+  "slug": "the-green-dashboard-that-lied",
+  "title": "The Green Dashboard That Lied",
+  "hook": "When your primary dependency is a probabilistic black box managed by a third party, a 200 OK status code isn't a success signal. It's just an acknowledgment that your request arrived.",
+  "path": "articles/the-green-dashboard-that-lied.html",
+  "date": "2026-03-12",
+  "status": "published",
+  "format": "dispatch",
+  "tags": ["observability", "json-schema", "model-drift"],
+  "reading_time_minutes": 3,
+  "pinned": false,
+  "research_window": "2026-01-29 to 2026-03-12"
 }]
 }
