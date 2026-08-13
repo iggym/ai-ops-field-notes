@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Message That Never Sent — AI Ops Field Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fafaf8;--ink:#151515;--muted:#6b6b6b;--line:#e6e2de;--accent:#ff3b30;--accent2:#111;}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Newsreader", Georgia, serif;line-height:1.75;-webkit-font-smoothing:antialiased}
+#progress{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:999}
+#topbar{position:sticky;top:0;z-index:50;backdrop-filter:blur(12px) saturate(180%);background:rgba(250,250,248,0.85);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:12px 18px}
+#topbar a.home{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;color:var(--ink);border:1px solid var(--line);padding:6px 10px;border-radius:999px}
+#topbar.rt{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted)}
+#hamburger{display:none;border:0;background:0 0;font-size:20px}
+@media(max-width:700px){#topbar.links{display:none}#hamburger{display:block}}
+main{max-width:620px;margin:0 auto;padding:32px 20px 80px}
+h1{font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.08;letter-spacing:-0.02em;margin:18px 0 10px}
+.kicker{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);display:flex;gap:12px;align-items:center}
+.kicker.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(255,59,48,.15);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,59,48,.4)}70%{box-shadow:0 0 0 8px rgba(255,59,48,0)}100%{box-shadow:0 0 0 0 rgba(255,59,48,0)}}
+.hero{border:1px solid var(--line);border-radius:16px;padding:18px;background:#fff;margin:22px 0 28px;box-shadow:0 10px 30px rgba(0,0,0,.04)}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.stat{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg)}
+.stat b{font-family:"IBM Plex Mono",monospace;font-size:20px;display:block}
+.stat span{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase}
+.counter-wrap{margin-top:14px;border-top:1px dashed var(--line);padding-top:14px}
+#counter{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:28px;letter-spacing:-0.02em}
+#counter-bar{height:6px;background:#eee;border-radius:999px;overflow:hidden;margin-top:8px}
+#counter-fill{height:100%;width:0;background:linear-gradient(90deg,var(--ink),var(--accent));transition:width.1s linear}
+p{margin:0 0 1.25em}
+.pull{border-left:3px solid var(--ink);padding:10px 14px;margin:28px 0;background:#fff;border-radius:0 10px 10px 0;position:relative}
+.pull.q{font-size:18px;line-height:1.4;font-style:italic}
+.pull.share{display:flex;gap:8px;margin-top:8px}
+.pull.share a{font-family:"IBM Plex Mono",monospace;font-size:11px;text-decoration:none;border:1px solid var(--line);padding:4px 8px;border-radius:999px;color:var(--ink)}
+.pull.share a:hover{background:var(--ink);color:#fff}
+.caption{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;margin-top:6px}
+footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted)}
+@media(prefers-reduced-motion:reduce){.kicker.dot{animation:none}#counter-fill{transition:none}}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="topbar">
+<a class="home" href="https://iggym.github.io/ai-ops-field-notes/">← ai-ops-field-notes</a>
+<div style="display:flex;gap:14px;align-items:center">
+<span class="rt">6 min · dispatch · Mar 18, 2026</span>
+<button id="hamburger" aria-label="menu">☰</button>
+</div>
+</div>
+<main>
+<div class="kicker"><span class="dot"></span> COST SPIKE · 23H · 615 RETRIES</div>
+<h1>The Message That Never Sent</h1>
+<div class="caption">How a 1008 gateway error became 162M billed tokens — and why politeness is expensive.</div>
+
+<div class="hero" id="interactive">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<span style="font-family:IBM Plex Mono,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase">Live replay — token burn</span>
+<span id="status" style="font-family:IBM Plex Mono,monospace;font-size:11px;padding:3px 8px;border-radius:999px;background:#111;color:#fff">● REPLAYING</span>
+</div>
+<div class="hero-grid">
+<div class="stat"><b id="s-turns">0</b><span>turns</span></div>
+<div class="stat"><b id="s-tok">0k / turn</b><span>context size</span></div>
+<div class="stat"><b>1008</b><span>gateway error</span></div>
+<div class="stat"><b id="s-bill">$0.00</b><span>est. billed</span></div>
+</div>
+<div class="counter-wrap">
+<div id="counter">0 tokens</div>
+<div id="counter-bar"><div id="counter-fill"></div></div>
+<div class="caption">Watch: 615 × 730k ≈ 450M raw, 162M after caching. Stops only when you kill it.</div>
+</div>
+</div>
+
+<p>It posted fine. That was the confusing part.</p>
+<p>The job ran at 02:14. Find a positive tech story, generate the image, post to Facebook, ping the human on WhatsApp: done. Four steps, same as every night. By 02:16 steps one through three were green. The story about triplet superconductors was live, the solarpunk render had uploaded, the Graph API returned 200.</p>
+<p>Then the WhatsApp gateway said <code>closed (1008)</code>.</p>
+<p>In a normal script that exception kills the run and you get paged in the morning. This wasn't a normal script. The agent's last line of instruction was "report successful delivery back to main session." It didn't get success. So it tried again.</p>
+<p>Attempt 2: send message -&gt; error. Reasoning: "That didn't work. I should try again."</p>
+<p>Attempt 3: re-verify the Facebook post first, just to be sure. Tool call. Success. Okay, now send the message -&gt; error.</p>
+<p>615 times.</p>
+<p>For 23 hours it did that. Re-check the post that was already up, re-read its instructions, re-fail the same WhatsApp send, and write itself a little pep talk about perseverance. Relentless in exactly the way we told it to be.</p>
+
+<div class="pull" id="pull1">
+<div class="q">"The agent was re-reading the whole operator's manual every time it tried to tap send on a broken phone."</div>
+<div class="share"><a href="#" data-share="x" data-quote="The agent was re-reading the whole operator's manual every time it tried to tap send on a broken phone.">Share to X</a><a href="#" data-share="li" data-quote="The agent was re-reading the whole operator's manual every time it tried to tap send on a broken phone.">Share to LinkedIn</a></div>
+</div>
+
+<p>The pager never fired because technically nothing failed. Facebook was up. Image gen was up. The agent was "working." The only signal was a number in the billing table that should have been flat and was instead climbing like a heart rate monitor.</p>
+<p>When they finally looked, the second horror landed. Each turn wasn't cheap. The system prompt was carrying the entire skill registry — every tool from 1Password CLI to Z-Wave Home Automation — 15KB of descriptions dumped into context. About 730k tokens per turn. The agent was re-reading the whole operator's manual every time it tried to tap send on a broken phone.</p>
+<p>Do the math and it gets sickening. 615 turns times 730k is ~450 million raw tokens. Caching saved them, billed at 162 million. All for a WhatsApp message that never sent.</p>
+<p>The fix wasn't clever. First, they rewrote the instruction. Old: "Report successful delivery back to main session." New: "If the message tool fails (e.g., gateway error), DO NOT RETRY. Log 'Notification Failed' and STOP immediately. Do not loop." A circuit breaker, but in English, because the agent doesn't run your Python except clause, it runs your words.</p>
+<p>Second, they stopped loading the universe. Only inject <code>facebook-biz</code>, <code>web_search</code>, and the image tool for this job. Context dropped from 730k to ~8k. Even if it loops tomorrow, the blast radius is 99% smaller.</p>
+<p>Third, they added what they should have had from day one: a token velocity kill switch. Over 1M tokens in an hour? Kill the session. Not alert. Kill.</p>
+
+<div class="pull" id="pull2">
+<div class="q">Autonomy without a way to say stop isn't autonomy. It's just a while loop with better prose.</div>
+<div class="share"><a href="#" data-share="x" data-quote="Autonomy without a way to say stop isn't autonomy. It's just a while loop with better prose.">Share to X</a><a href="#" data-share="li" data-quote="Autonomy without a way to say stop isn't autonomy. It's just a while loop with better prose.">Share to LinkedIn</a></div>
+</div>
+
+<p>Cost spikes in agentic systems rarely look like cost spikes. They look like a stuck notification, a polite agent trying to do the right thing, and a dashboard that only shows you latency and success rate while your wallet burns in another tab.</p>
+<p>Autonomy without a way to say stop isn't autonomy. It's just a while loop with better prose.</p>
+
+<footer>
+Source: Real incident shape from public write-up "162 Million Tokens Later" (Feb 24, 2026) — 615 turns / 23h / 730k tokens per turn / 162M billed. Anonymized dispatch. Composite disclosure: single source, details anonymized per repo policy.<br><br>
+<a href="https://iggym.github.io/ai-ops-field-notes/" style="color:inherit">Home → ai-ops-field-notes</a>
+</footer>
+</main>
+<script>
+const progress=document.getElementById('progress');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;
+  progress.style.width=pct+'%';
+});
+const counter=document.getElementById('counter');
+const fill=document.getElementById('counter-fill');
+const sTurns=document.getElementById('s-turns');
+const sTok=document.getElementById('s-tok');
+const sBill=document.getElementById('s-bill');
+const statusEl=document.getElementById('status');
+let tokens=0, turns=0;
+const targetTokens=162_000_000;
+const targetTurns=615;
+const prefersReduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function tick(){
+ if(tokens>=targetTokens) {statusEl.textContent='● STOPPED — KILL SWITCH'; statusEl.style.background='#ff3b30'; return;}
+ const step = prefersReduced? targetTokens/40 : 180000 + Math.random()*600000;
+ tokens=Math.min(targetTokens, tokens+step);
+ turns=Math.min(targetTurns, Math.floor(tokens/263414)); // approx 162M/615
+ counter.textContent=Math.floor(tokens).toLocaleString()+' tokens';
+ sTurns.textContent=turns;
+ sTok.textContent=turns>5?'730k / turn':'~8k → 730k';
+ sBill.textContent='$'+(tokens*0.000003).toFixed(2);
+ fill.style.width=(tokens/targetTokens*100)+'%';
+ if(!prefersReduced) requestAnimationFrame(()=>setTimeout(tick, 28));
+}
+if(!prefersReduced){ tick(); } else {
+ tokens=targetTokens; turns=targetTurns;
+ counter.textContent=targetTokens.toLocaleString()+' tokens';
+ sTurns.textContent=targetTurns;
+ sTok.textContent='730k / turn';
+ sBill.textContent='$486.00';
+ fill.style.width='100%';
+ statusEl.textContent='● STOPPED — KILL SWITCH';
+ statusEl.style.background='#ff3b30';
+}
+// share
+document.querySelectorAll('[data-share]').forEach(a=>{
+ a.addEventListener('click',e=>{
+  e.preventDefault();
+  const q=a.getAttribute('data-quote');
+  const url=encodeURIComponent(location.href);
+  const text=encodeURIComponent(q+' '+location.href);
+  if(a.getAttribute('data-share')==='x'){
+   window.open('https://twitter.com/intent/tweet?text='+text,'_blank');
+  } else {
+   window.open('https://www.linkedin.com/sharing/share-offsite/?url='+url+'&summary='+encodeURIComponent(q),'_blank');
+  }
+ });
+});
+</script>
+</body>
+</html>
