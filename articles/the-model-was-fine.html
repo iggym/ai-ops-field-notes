@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Green alerts, silent RAG — AI Ops Field Notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#09090b;--surface:#18181b;--text:#e4e4e7;--text-dim:#71717a;
+      --accent:#ef4444;--green:#22c55e;--yellow:#eab308;--border:#27272a;
+      --glass:rgba(9,9,11,0.82);
+    }
+    html{scroll-behavior:smooth}
+    body{
+      font-family:'IBM Plex Serif',Georgia,serif;background:var(--bg);
+      color:var(--text);line-height:1.8;min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+    }
+    /* ── progress ── */
+    #progress{position:fixed;top:0;left:0;height:2px;background:var(--accent);z-index:200;width:0%}
+    /* ── topbar ── */
+    #topbar{
+      position:sticky;top:0;z-index:100;
+      backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      background:var(--glass);border-bottom:1px solid var(--border);
+      padding:.6rem 1.5rem;display:flex;align-items:center;justify-content:space-between;
+      font-family:'IBM Plex Mono',monospace;font-size:.78rem;
+    }
+    #topbar a{color:var(--text-dim);text-decoration:none;transition:color .15s}
+    #topbar a:hover{color:var(--text)}
+    .tb-left{display:flex;align-items:center;gap:1.25rem}
+    .tb-right{color:var(--text-dim);font-size:.72rem}
+    .hamburger{
+      display:none;cursor:pointer;font-size:1.15rem;color:var(--text-dim);
+      background:none;border:none;padding:0;
+    }
+    .tb-nav{display:flex;gap:1rem}
+    @media(max-width:600px){
+      .hamburger{display:inline-block}
+      .tb-nav{display:none}
+      .tb-nav.open{
+        display:flex;flex-direction:column;gap:.5rem;position:absolute;
+        top:100%;left:0;right:0;background:var(--surface);
+        padding:.75rem 1.5rem;border-bottom:1px solid var(--border);
+      }
+    }
+    /* ── main ── */
+    main{max-width:620px;margin:0 auto;padding:3rem 1.5rem 4rem}
+    .hero-title{
+      font-size:clamp(1.7rem,4vw,2.4rem);font-weight:600;line-height:1.15;
+      margin-bottom:.6rem;letter-spacing:-.01em;
+    }
+    .hero-meta{
+      font-family:'IBM Plex Mono',monospace;font-size:.75rem;
+      color:var(--text-dim);margin-bottom:2.5rem;
+    }
+    .dispatch-body p{margin-bottom:1.2rem}
+    /* ── interactive moment ── */
+    .im{
+      background:var(--surface);border:1px solid var(--border);border-radius:6px;
+      padding:1.25rem 1.5rem;margin:2rem -.25rem;
+      font-family:'IBM Plex Mono',monospace;font-size:.78rem;
+    }
+    .im-cap{
+      color:var(--text-dim);font-size:.68rem;margin-bottom:.75rem;
+      text-transform:uppercase;letter-spacing:.08em;
+    }
+    .ep-row{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:.45rem 0;border-bottom:1px solid var(--border);
+    }
+    .ep-row:last-of-type{border-bottom:none}
+    .ep-l{display:flex;align-items:center;gap:.5rem}
+    .ep-r{display:flex;align-items:center;gap:.5rem;font-size:.72rem}
+    .dot{
+      width:8px;height:8px;border-radius:50%;flex-shrink:0;
+      transition:background .3s,box-shadow .3s;
+    }
+    .dot-g{background:var(--green);box-shadow:0 0 6px rgba(34,197,94,.5)}
+    .dot-r{background:var(--accent);box-shadow:0 0 6px rgba(239,68,68,.5)}
+    @keyframes pulse-r{
+      0%,100%{box-shadow:0 0 6px rgba(239,68,68,.5)}
+      50%{box-shadow:0 0 14px rgba(239,68,68,.85)}
+    }
+    .dot-r-pulse{animation:pulse-r 1s ease-in-out 3}
+    .im-div{border-top:1px solid var(--border);margin:.6rem 0}
+    .im-health{
+      display:flex;align-items:center;justify-content:space-between;padding:.45rem 0;
+    }
+    .im-note{
+      color:var(--yellow);font-size:.68rem;margin-top:.5rem;
+      opacity:0;transition:opacity .4s;
+    }
+    .im-note.vis{opacity:1}
+    .im-timer{
+      text-align:center;margin-top:.75rem;padding-top:.75rem;
+      border-top:1px solid var(--border);color:var(--text-dim);font-size:.72rem;
+    }
+    .im-timer .tv{color:var(--accent);font-size:1rem;font-weight:500}
+    .im-btn{
+      display:inline-block;margin-top:.75rem;padding:.35rem .75rem;
+      background:transparent;border:1px solid var(--border);color:var(--text-dim);
+      border-radius:4px;cursor:pointer;font-family:'IBM Plex Mono',monospace;
+      font-size:.7rem;transition:color .15s,border-color .15s;
+    }
+    .im-btn:hover{color:var(--text);border-color:var(--text-dim)}
+    .im-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    /* ── pull-quote ── */
+    .pq{
+      border-left:3px solid var(--accent);padding-left:1rem;
+      margin:2rem 0;font-style:italic;
+    }
+    .pq-txt{margin-bottom:.4rem}
+    .shr-row{display:flex;gap:.4rem}
+    .shr{
+      display:inline-flex;align-items:center;gap:.25rem;
+      padding:.2rem .5rem;background:var(--surface);border:1px solid var(--border);
+      color:var(--text-dim);border-radius:3px;cursor:pointer;
+      font-family:'IBM Plex Mono',monospace;font-size:.65rem;
+      text-decoration:none;transition:color .15s,border-color .15s;
+    }
+    .shr:hover{color:var(--text);border-color:var(--text-dim)}
+    .shr:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    /* ── footer ── */
+    footer{
+      max-width:620px;margin:0 auto;padding:2rem 1.5rem;
+      border-top:1px solid var(--border);
+      font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--text-dim);
+    }
+    footer a{color:var(--text-dim);text-decoration:none}
+    footer a:hover{color:var(--text)}
+    /* ── reduced motion ── */
+    @media(prefers-reduced-motion:reduce){
+      .dot{transition:none!important;box-shadow:none!important}
+      .dot-r-pulse{animation:none!important}
+      #progress{transition:none!important}
+      html{scroll-behavior:auto!important}
+      .im-note{transition:none!important}
+    }
+  </style>
+</head>
+<body>
+  <div id="progress"></div>
+
+  <header id="topbar">
+    <div class="tb-left">
+      <a href="https://iggym.github.io/ai-ops-field-notes/">Home</a>
+      <button class="hamburger" onclick="document.querySelector('.tb-nav').classList.toggle('open')" aria-label="Toggle menu">☰</button>
+      <nav class="tb-nav">
+        <a href="https://iggym.github.io/ai-ops-field-notes/">Field Notes</a>
+      </nav>
+    </div>
+    <div class="tb-right">3 min read</div>
+  </header>
+
+  <main>
+    <article>
+      <h1 class="hero-title">Green alerts, silent RAG</h1>
+      <div class="hero-meta">2025-02-17 · dispatch</div>
+
+      <div class="dispatch-body">
+        <p>The page came in at 2:14 AM, but not from any alert. The on-call engineer was already awake — a Slack message from the content team in Singapore: "Search is returning completely irrelevant results. Has been for about an hour."</p>
+
+        <p>He pulled up the dashboard. Every metric was green. OpenAI API p99: 187ms. Error rate: 0.3%. Uptime: 99.97%. He checked the RAG pipeline logs. Retrieval step completing in under 200ms. Nothing timing out. Nothing erroring.</p>
+
+        <p>He ran a test query himself. "Find me Q4 planning docs about the Austria expansion." Top result: an onboarding guide from 2022. Something was deeply wrong, and no alert had fired.</p>
+
+        <p>Forty-two minutes earlier, OpenAI's embeddings endpoint had started returning 503s. Not the chat completions endpoint — that was fine, which is why the headline API metrics looked healthy. The team's monitoring watched chat completion latency and error rate as a proxy for "OpenAI health," because when they'd wired up the provider, they'd treated it as one dependency. One API key. One billing account. One box on the architecture diagram.</p>
+
+        <p>Their system actually depended on three separate OpenAI services: chat completions for generation, the embeddings endpoint for vectorization, the moderation endpoint for output filtering. Each with its own failure mode, its own rate limits, its own capacity profile. The diagram showed one box.</p>
+
+        <!-- interactive moment -->
+        <div class="im" role="region" aria-label="Endpoint status simulation">
+          <div class="im-cap">Three endpoints. One health check.</div>
+          <div class="ep-row">
+            <div class="ep-l"><span class="dot dot-g" id="d-chat"></span>Chat Completions</div>
+            <div class="ep-r" id="s-chat">200 OK</div>
+          </div>
+          <div class="ep-row">
+            <div class="ep-l"><span class="dot dot-g" id="d-emb"></span>Embeddings</div>
+            <div class="ep-r" id="s-emb">200 OK</div>
+          </div>
+          <div class="ep-row">
+            <div class="ep-l"><span class="dot dot-g" id="d-mod"></span>Moderation</div>
+            <div class="ep-r" id="s-mod">200 OK</div>
+          </div>
+          <div class="im-div"></div>
+          <div class="im-health">
+            <div class="ep-l"><span class="dot dot-g" id="d-hlth"></span>API Health <span style="font-size:.65rem;color:var(--text-dim)">(monitored)</span></div>
+            <div class="ep-r" id="s-hlth">HEALTHY</div>
+          </div>
+          <div class="im-note" id="im-note">⚠ "API Health" tracks Chat Completions only — Embeddings failure invisible</div>
+          <div class="im-timer" id="im-timer" style="display:none">Embeddings down: <span class="tv" id="tv">0:00</span></div>
+          <button class="im-btn" id="im-go" onclick="go()">Simulate partial outage</button>
+          <button class="im-btn" id="im-rst" onclick="rst()" style="display:none">Reset</button>
+        </div>
+
+        <p>The RAG pipeline's error handling made things worse. When embeddings 503'd, retrieval caught the error and fell back to a cached embedding — but the cache had been populated days earlier with vectors from a different model version. The cosine similarities were off just enough to return results that looked plausible but weren't. No hard error. No empty result set that would've triggered a keyword search fallback. Just confidently wrong answers, served fast.</p>
+
+        <div class="pq">
+          <div class="pq-txt">"Just confidently wrong answers, served fast."</div>
+          <div class="shr-row">
+            <button class="shr" onclick="shX('Just confidently wrong answers, served fast.')" aria-label="Share on X">𝕏</button>
+            <button class="shr" onclick="shLI()" aria-label="Share on LinkedIn">in</button>
+          </div>
+        </div>
+
+        <p>A content manager in Singapore noticed because she searched for something she'd written that morning and it didn't appear. That's what caught it — a human running a specific, verifiable query. Not any monitoring system.</p>
+
+        <p>The fix took eleven minutes: route embeddings through a separate circuit breaker with its own alert threshold, add a stale-cache detection flag, switch the RAG fallback to keyword search on provider error. The incident lasted 53 minutes. The monitoring gap had existed for four months.</p>
+
+        <p>What they hadn't known: that "OpenAI" on the architecture diagram was actually three services, each with its own failure mode — and watching one endpoint as a health proxy for all three is a bet that outages are always total. That stale cached embeddings are more dangerous than empty results, because no results triggers a fallback but wrong results sails through. And that infra alerts on latency and error rate cannot catch a relevance problem. You need a canary query with a known answer, and you need it to scream when the answer changes even if the response time doesn't.</p>
+
+        <div class="pq">
+          <div class="pq-txt">"The page that caught this came from a person, not a pager. The pager was green."</div>
+          <div class="shr-row">
+            <button class="shr" onclick="shX('The page that caught this came from a person, not a pager. The pager was green.')" aria-label="Share on X">𝕏</button>
+            <button class="shr" onclick="shLI()" aria-label="Share on LinkedIn">in</button>
+          </div>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>Composite dispatch based on documented partial-outage patterns. No specific company incident referenced.</p>
+    <p style="margin-top:.5rem"><a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a></p>
+  </footer>
+
+  <script>
+    /* progress bar */
+    const pr=document.getElementById('progress');
+    window.addEventListener('scroll',()=>{
+      const h=document.documentElement;
+      pr.style.width=Math.min(h.scrollTop/(h.scrollHeight-h.clientHeight)*100,100)+'%';
+    });
+
+    /* interactive: endpoint status */
+    let tid=null,sec=0;
+    const URL='https://iggym.github.io/ai-ops-field-notes/articles/green-alerts-silent-rag.html';
+
+    function go(){
+      const dE=document.getElementById('d-emb'),sE=document.getElementById('s-emb'),
+            n=document.getElementById('im-note'),t=document.getElementById('im-timer'),
+            tv=document.getElementById('tv'),goBtn=document.getElementById('im-go'),
+            rsBtn=document.getElementById('im-rst');
+      dE.className='dot dot-r dot-r-pulse';
+      sE.textContent='503 Unavailable';sE.style.color='var(--accent)';
+      setTimeout(()=>n.classList.add('vis'),800);
+      sec=0;t.style.display='block';tv.textContent='0:00';
+      tid=setInterval(()=>{
+        sec++;const m=Math.floor(sec/60),s=sec%60;
+        tv.textContent=m+':'+(s<10?'0':'')+s;
+      },1000);
+      goBtn.style.display='none';rsBtn.style.display='inline-block';
+    }
+
+    function rst(){
+      clearInterval(tid);
+      const dE=document.getElementById('d-emb'),sE=document.getElementById('s-emb'),
+            n=document.getElementById('im-note'),t=document.getElementById('im-timer'),
+            goBtn=document.getElementById('im-go'),rsBtn=document.getElementById('im-rst');
+      dE.className='dot dot-g';sE.textContent='200 OK';sE.style.color='';
+      n.classList.remove('vis');t.style.display='none';
+      goBtn.style.display='inline-block';rsBtn.style.display='none';
+    }
+
+    /* share */
+    function shX(txt){
+      const full=txt+' — Green alerts, silent RAG';
+      window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(full),'_blank');
+    }
+    function shLI(){
+      window.open('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(URL),'_blank');
+    }
+  </script>
+</body>
+</html>
