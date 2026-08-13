@@ -133,6 +133,19 @@
   "reading_time_minutes": 3,
   "pinned": false,
   "research_window": "2026-01-13 to 2026-02-24"
+}, {
+  "id": "0422",
+  "slug": "two-incidents-one-revert",
+  "title": "Two incidents, one revert",
+  "hook": "The rollback fixed the alert. Then the rollback became the incident.",
+  "path": "articles/two-incidents-one-revert.html",
+  "date": "2025-04-22",
+  "status": "published",
+  "format": "dispatch",
+  "tags": ["rollback-gone-wrong", "embedding-mismatch", "vector-database"],
+  "reading_time_minutes": 3,
+  "pinned": false,
+  "research_window": "2025-04-01 to 2025-04-22"
 }
   ]
 }
