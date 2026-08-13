@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Commit That Never Happened - AI Ops Field Notes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d1117;
+            --card-bg: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-heading: #f0f6fc;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --danger: #f85149;
+            --success: #3fb950;
+            --warning: #d29922;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-sans);
+            line-height: 1.7;
+            padding-bottom: 60px;
+        }
+
+        #progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: var(--accent);
+            width: 0%;
+            z-index: 1000;
+            transition: width 0.1s ease;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            background: rgba(13, 17, 23, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 900;
+        }
+
+        .topbar a {
+            color: var(--text-heading);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .topbar a:hover {
+            color: var(--accent);
+        }
+
+        .meta-info {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .container {
+            max-width: 620px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        header {
+            margin-bottom: 32px;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(88, 166, 255, 0.1);
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            margin-bottom: 12px;
+            border: 1px solid rgba(88, 166, 255, 0.2);
+        }
+
+        h1 {
+            color: var(--text-heading);
+            font-size: clamp(1.7rem, 4vw, 2.4rem);
+            line-height: 1.25;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+        }
+
+        .dispatch-date {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .content p {
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+
+        .interactive-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 32px 0;
+        }
+
+        .interactive-title {
+            font-size: 0.85rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .code-block {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 14px;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--text);
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .code-highlight-red {
+            color: var(--danger);
+            background: rgba(248, 81, 73, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+        }
+
+        .pill {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .pill-green {
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--success);
+        }
+
+        .pill-red {
+            background: rgba(248, 81, 73, 0.15);
+            color: var(--danger);
+        }
+
+        .pull-quote {
+            border-left: 3px solid var(--accent);
+            padding: 12px 0 12px 20px;
+            margin: 28px 0;
+            background: rgba(22, 27, 34, 0.5);
+            border-radius: 0 6px 6px 0;
+        }
+
+        .pull-quote p {
+            font-size: 1.05rem;
+            color: var(--text-heading);
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .share-btn {
+            background: var(--border);
+            color: var(--text);
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .share-btn:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #progress {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="progress"></div>
+
+    <div class="topbar">
+        <a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a>
+        <div class="meta-info">3 min read</div>
+    </div>
+
+    <div class="container">
+        <header>
+            <span class="tag">DISPATCH #014</span>
+            <h1>The Commit That Never Happened</h1>
+            <div class="dispatch-date">JANUARY 14, 2026</div>
+        </header>
+
+        <div class="content">
+            <p>The page came in at 02:14 AM.</p>
+
+            <p>The primary extraction worker was dumping thousands of unhandled exceptions into Sentry. <code>SyntaxError: Unexpected end of JSON input</code>. The pipeline had ingested 12,000 incoming vendor invoices over the last hour and failed on every single one.</p>
+
+            <p>The on-call engineer checked GitHub immediately. No deployments had gone out since Tuesday afternoon. The main branch was clean. The staging environment was quiet. Yet, every single invoice parsing job was failing at the exact same step: validating the structured JSON payload returned from the model API.</p>
+
+            <p>By 03:00 AM, the incident response channel was filled with theories. Someone suggested a database lock. Someone else blamed corrupted PDF uploads from an upstream vendor. The team spent ninety minutes inspecting invoice file encodings, diffing database migrations, and restarting worker pods. Nothing changed. The parser kept receiving broken, half-written JSON strings.</p>
+
+            <p>Then someone printed the raw HTTP response body from the provider.</p>
+
+            <div class="interactive-container">
+                <div class="interactive-title">Raw Response Payload Snapshot (HTTP 200 OK)</div>
+                <div class="code-block">
+{
+  "id": "chatcmpl-9xK12A",
+  "object": "chat.completion",
+  "model": "model-v2-latest",
+  "choices": [{
+    "message": {
+      "role": "assistant",
+      "content": "{\"invoice_id\": \"INV-8831\", \"items\": [{\"sku\": \"A99\", \"qty\": 4, \"price\":<span class="code-highlight-red">[TRUNCATED]</span>"
+    },
+    "finish_reason": "length"
+  }]
+}
+                </div>
+                <div class="meta-row">
+                    <span>HTTP Status: <span class="pill pill-green">200 OK</span></span>
+                    <span>Finish Reason: <span class="pill pill-red">length</span></span>
+                </div>
+            </div>
+
+            <p>The API was returning HTTP 200 OK. The latency looked normal. But the tail end of the response body stopped abruptly in the middle of an array.</p>
+
+            <p>The code wasn't crashing because of an invalid document. It was crashing because the response was cut in half.</p>
+
+            <p>Two weeks earlier, the team configured their API requests using the provider’s rolling model alias, <code>model-v2-latest</code>, instead of pinning a specific dated checkpoint. At midnight UTC, the provider quietly flipped that alias to a new model iteration. The new model was smarter, but it was also significantly more verbose. It spent 400 extra tokens explaining its reasoning inside internal fields before outputting the final JSON schema.</p>
+
+            <div class="pull-quote">
+                <p>Because the client code checked the HTTP status code instead of finish_reason, it passed the half-baked string straight to the JSON parser.</p>
+                <div class="share-buttons">
+                    <a class="share-btn" href="https://twitter.com/intent/tweet?text=Because%20the%20client%20code%20checked%20the%20HTTP%20status%20code%20instead%20of%20finish_reason%2C%20it%20passed%20the%20half-baked%20string%20straight%20to%20the%20JSON%20parser.&url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on X</a>
+                    <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on LinkedIn</a>
+                </div>
+            </div>
+
+            <p>That extra verbosity pushed the overall output length past the client's hardcoded limit of 1,024 tokens. The API didn't throw an error when it hit the limit. It simply stopped generating text, set <code>finish_reason: "length"</code>, and returned a 200 OK with a truncated string.</p>
+
+            <p>The fix took two minutes: bump <code>max_tokens</code> to 4,096 and pin the request to the exact dated snapshot <code>model-v2-2025-11-01</code>. The cleanup took five hours. Twelve thousand invoices had to be re-processed through the queue before the morning finance run.</p>
+
+            <div class="pull-quote">
+                <p>Floating model aliases are unversioned dependencies running third-party code in your production path.</p>
+                <div class="share-buttons">
+                    <a class="share-btn" href="https://twitter.com/intent/tweet?text=Floating%20model%20aliases%20are%20unversioned%20dependencies%20running%20third-party%20code%20in%20your%20production%20path.&url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on X</a>
+                    <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on LinkedIn</a>
+                </div>
+            </div>
+
+            <p>When you build on top of external AI models, your system code isn't just what lives in your repository. If you don't pin the exact model checkpoint and validate completion reasons, an upstream release notes item will eventually become your 2:00 AM postmortem.</p>
+        </div>
+
+        <footer>
+            <p>Composite case analysis based on production LLM failure modes.</p>
+            <p><a href="https://iggym.github.io/ai-ops-field-notes/">Return to AI Ops Field Notes Index</a></p>
+        </footer>
+    </div>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progress').style.width = scrolled + '%';
+        });
+    </script>
+</body>
+</html>
