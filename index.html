@@ -86,19 +86,22 @@
   const descEl = document.getElementById('site-desc');
   const footerDescEl = document.getElementById('footer-desc');
 
+  // Format the ISO date string directly: going through Date + toISOString()
+  // shifts the day for readers east of UTC.
   function fmtTs(iso){
-    try{
-      const d = new Date(iso+'T00:00:00');
-      return d.toISOString().slice(0,10).replace(/-/g,'.') ;
-    }catch(e){ return iso; }
+    return /^\d{4}-\d{2}-\d{2}$/.test(iso||'') ? iso.replace(/-/g,'.') : esc(iso);
+  }
+
+  function esc(v){
+    return String(v==null?'':v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
   function entryHTML(a,isPinned){
     return `
-      <a class="entry ${isPinned?'pinned':''}" href="${a.path}">
-        <div class="entry-head"><span class="ts">${fmtTs(a.date)}</span><span>${a.reading_time_minutes||'—'}min</span>${isPinned?'<span style="color:var(--red)">SEV-1</span>':''}</div>
-        <div class="entry-title">${a.title}</div>
-        <div class="entry-hook">${a.hook||''}</div>
+      <a class="entry ${isPinned?'pinned':''}" href="${esc(a.path)}">
+        <div class="entry-head"><span class="ts">${fmtTs(a.date)}</span><span>${esc(a.reading_time_minutes||'—')}min</span>${isPinned?'<span style="color:var(--red)">SEV-1</span>':''}</div>
+        <div class="entry-title">${esc(a.title)}</div>
+        <div class="entry-hook">${esc(a.hook)}</div>
       </a>`;
   }
 
@@ -109,7 +112,7 @@
       countEl.textContent = '0'; return;
     }
     const pinned = published.filter(a=>a.pinned);
-    const rest = published.filter(a=>!a.pinned).sort((a,b)=>new Date(b.date)-new Date(a.date));
+    const rest = published.filter(a=>!a.pinned).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
     countEl.textContent = published.length + ' entries';
     let html='';
     pinned.forEach(a=>{ html += entryHTML(a,true); });

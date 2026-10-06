@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The model was fine — AI Ops Field Notes</title>
-  <meta name="description" content="The model was fine. It was doing exactly what it was told — by someone who wasn&#x27;t in the incident channel.">
-  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-model-was-fine.html">
+  <title>The Cache That Answered Last Quarter — AI Ops Field Notes</title>
+  <meta name="description" content="A semantic cache doesn&#x27;t know what changed. It only knows what&#x27;s similar, and last quarter&#x27;s answer is very similar.">
+  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-cache-that-answered-last-quarter.html">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="AI Ops Field Notes">
-  <meta property="og:title" content="The model was fine">
-  <meta property="og:description" content="The model was fine. It was doing exactly what it was told — by someone who wasn&#x27;t in the incident channel.">
-  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-model-was-fine.html">
-  <meta property="article:published_time" content="2024-12-03">
+  <meta property="og:title" content="The Cache That Answered Last Quarter">
+  <meta property="og:description" content="A semantic cache doesn&#x27;t know what changed. It only knows what&#x27;s similar, and last quarter&#x27;s answer is very similar.">
+  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-cache-that-answered-last-quarter.html">
+  <meta property="article:published_time" content="2026-09-16">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="The model was fine">
-  <meta name="twitter:description" content="The model was fine. It was doing exactly what it was told — by someone who wasn&#x27;t in the incident channel.">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The model was fine", "description": "The model was fine. It was doing exactly what it was told — by someone who wasn't in the incident channel.", "datePublished": "2024-12-03", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-model-was-fine.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
+  <meta name="twitter:title" content="The Cache That Answered Last Quarter">
+  <meta name="twitter:description" content="A semantic cache doesn&#x27;t know what changed. It only knows what&#x27;s similar, and last quarter&#x27;s answer is very similar.">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The Cache That Answered Last Quarter", "description": "A semantic cache doesn't know what changed. It only knows what's similar, and last quarter's answer is very similar.", "datePublished": "2026-09-16", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-cache-that-answered-last-quarter.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
@@ -121,60 +121,59 @@
 
   <main>
     <article>
-      <h1 class="hero-title">The model was fine</h1>
-      <div class="hero-meta">2024-12-03 · dispatch</div>
+      <h1 class="hero-title">The Cache That Answered Last Quarter</h1>
+      <div class="hero-meta">2026-09-16 · dispatch</div>
 
       <div class="dispatch-body">
-        <p>The completeness alert fired at 10:42 on a Tuesday. The LLM-as-judge score for the support assistant had dropped from 0.88 to 0.71 in under an hour, and the hallucination detector was flagging answers as “missing required steps.” The on-call engineer, Priya, pulled a sample. The answers were short. Clipped. One refund explanation ended mid-procedure, three steps in.</p>
-        <p>It looked like a model regression. The provider had announced a minor update the week before, and the shape matched: same questions, worse answers, no code deploys on their side. She opened a ticket with the provider and started the runbook for pinning the previous model snapshot.</p>
-        <p>The pin went out at 11:20. The score didn't move.</p>
-        <p>That was the first useful signal. If rolling back the model doesn't change the output, the model isn't the variable. She diffed the full request payloads between a good answer from Monday and a bad one from that morning. The user messages were similar. The model ID was identical. The system prompt was not.</p>
-        <p>The bad request had an extra line at the bottom: “Keep every answer under 60 words. Customers prefer brevity.”</p>
-        <p>It came from a feature flag called <code>concise_answers_v2</code>. The growth team had launched an A/B test that morning to see whether shorter answers improved CSAT. The flag lived in the product experimentation tool, not the deploy pipeline, so it never showed up in the change log the on-call engineer checked first. It was serving the new prompt to 30% of traffic.</p>
-        <div class="im" id="im" role="region" aria-label="Quality alert simulation">
-          <div class="im-cap">Same model. Same eval. One flag.</div>
+        <p>The complaint that started it was polite and specific. A customer had been told by the store's assistant, twice, in writing, that she could return an opened blender within 60 days. The store refused the return under the new policy: 30 days, unopened items only. She attached screenshots. Customer service checked the assistant's logs and saw the same answer she did.</p>
+        <p>The returns policy had changed seventeen days earlier. Legal had signed off on new wording, the knowledge base was updated the same afternoon, and the retrieval index re-embedded the changed documents overnight. The team had tested it: ask the assistant about returns, get the new policy. It passed.</p>
+        <p>It passed because the test phrasing was new. Real customers ask the same handful of questions in the same handful of ways.</p>
+        <p>Six months earlier, the team had put a semantic cache in front of the whole RAG pipeline. Embed the incoming question, look for a cached question with cosine similarity above 0.92, and if one exists, return its stored answer without retrieval or generation. It cut model costs by more than half and dropped median latency to under 50 milliseconds. It was the most popular optimization the team had ever shipped.</p>
+        <div class="im" id="im" role="region" aria-label="Semantic cache staleness simulation">
+          <div class="im-cap">“Can I return an opened item?”</div>
           <div aria-live="polite">
           <div class="im-row">
-            <div class="im-l">Model version</div>
-            <div class="im-r dim" id="r0">support-v4.1</div>
+            <div class="im-l">Cache</div>
+            <div class="im-r ok" id="r0">HIT · 38ms</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Answer completeness (judge)</div>
-            <div class="im-r bad" id="r1">0.71 ▼ ALERT</div>
+            <div class="im-l">Answer</div>
+            <div class="im-r ok" id="r1">“Yes, within 60 days.”</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Suspected cause</div>
-            <div class="im-r bad" id="r2">model regression</div>
+            <div class="im-l">Current policy (KB)</div>
+            <div class="im-r dim" id="r2">(not checked on hit)</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Flag: concise_answers_v2</div>
-            <div class="im-r dim" id="r3">not in dashboard</div>
+            <div class="im-l">Policy version at cache write</div>
+            <div class="im-r dim" id="r3">(not stored)</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Rollback effect</div>
-            <div class="im-r dim" id="r4">pending</div>
+            <div class="im-l">Cache hit rate</div>
+            <div class="im-r ok" id="r4">64% ▲ cost savings</div>
           </div>
           </div>
-          <div class="im-note" id="im-note">⚠ concise_answers_v2 was serving a different system prompt to 30% of traffic. The judge was scoring a 60-word cap as &#x27;incomplete&#x27;.</div>
-          <button class="im-btn" id="im-go" type="button">Show the flag state</button>
+          <div class="im-note" id="im-note">⚠ Cache key = query embedding only. Similarity 0.94 &gt; 0.92 threshold → hit. The entry was written 11 days before the policy changed. No invalidation on knowledge-base update.</div>
+          <button class="im-btn" id="im-go" type="button">Inspect the cache entry</button>
           <button class="im-btn" id="im-rst" type="button" style="display:none">Reset</button>
         </div>
-        <p>The model was doing exactly what it was told. A 60-word cap on a seven-step refund procedure produces a three-step answer, and the judge, correctly, scored it as incomplete. Every alert was true. The diagnosis was wrong, because the system that changed the behavior wasn't in the incident channel, and nobody in the incident channel knew it existed.</p>
+        <p>The cache key was the meaning of the question. It had nothing to do with the state of the knowledge the answer was built from. When the policy changed, every cached answer about returns stayed valid by the only test the cache applied. “Can I return an opened item?” is exactly as similar to “can i return something i opened” on day 18 as it was on day 1. The cache had a 30-day TTL, and the hot entries were being refreshed by hits faster than they expired.</p>
         <div class="pq">
-          <div class="pq-txt">“If rolling back the model doesn't change the output, the model isn't the variable.”</div>
+          <div class="pq-txt">“The cache key was the meaning of the question. It had nothing to do with the state of the knowledge the answer was built from.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="If rolling back the model doesn&#x27;t change the output, the model isn&#x27;t the variable." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="If rolling back the model doesn&#x27;t change the output, the model isn&#x27;t the variable." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="The cache key was the meaning of the question. It had nothing to do with the state of the knowledge the answer was built from." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="The cache key was the meaning of the question. It had nothing to do with the state of the knowledge the answer was built from." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
-        <p>The fix took four minutes once they found it: turn the flag off. Scores recovered within the next eval window. The cleanup took longer. The team moved prompt-affecting flags into the same audit trail as deploys, added the active flag set to every trace as span attributes, and taught the alert to group scores by flag variant. A split that clean, 30% bad and 70% fine, would have pointed at the experiment in the first minute.</p>
-        <p>They also wrote down the thing that stung: in an LLM system, the prompt is code, and anyone who can edit it is shipping to production. The experimentation tool had more deploy authority than the deploy pipeline, and nobody had drawn that box on the architecture diagram.</p>
-        <p>The provider ticket was closed with an apology. The model was fine. It was doing exactly what it was told — by someone who wasn't in the incident channel.</p>
+        <p>A replay of seventeen days of traffic found roughly 4,100 conversations where the assistant had served the old returns policy from cache. The company honored all of them, which was the right call and an expensive one.</p>
+        <p>The cache survived, with changes. Each entry now stores the IDs and versions of the documents that were retrieved to produce it. When a document changes, every cache entry that depended on it is evicted in the same job that re-embeds it. Policy-class documents, such as returns, pricing and warranties, are excluded from caching entirely. And the eval suite now runs every test question twice, once cold and once warm, and fails if the answers differ.</p>
+        <p>Caching a deterministic function is easy. Caching a probabilistic system whose truth lives in a separate database means you are caching a join, and you need to invalidate on both sides.</p>
+        <p>A semantic cache doesn't know what changed. It only knows what's similar, and last quarter's answer is very similar.</p>
         <div class="pq">
-          <div class="pq-txt">“The model was fine. It was doing exactly what it was told — by someone who wasn't in the incident channel.”</div>
+          <div class="pq-txt">“A semantic cache doesn't know what changed. It only knows what's similar, and last quarter's answer is very similar.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="The model was fine. It was doing exactly what it was told — by someone who wasn&#x27;t in the incident channel." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="The model was fine. It was doing exactly what it was told — by someone who wasn&#x27;t in the incident channel." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="A semantic cache doesn&#x27;t know what changed. It only knows what&#x27;s similar, and last quarter&#x27;s answer is very similar." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="A semantic cache doesn&#x27;t know what changed. It only knows what&#x27;s similar, and last quarter&#x27;s answer is very similar." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
       </div>
@@ -182,7 +181,7 @@
   </main>
 
   <footer>
-    <p>Composite dispatch based on documented prompt-configuration and feature-flag false-positive patterns. No specific company incident referenced.</p>
+    <p>Composite dispatch based on documented semantic-cache staleness and cache-invalidation failures in RAG systems. No specific company incident referenced.</p>
     <p style="margin-top:.5rem"><a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a></p>
   </footer>
 
@@ -195,7 +194,7 @@
     });
 
     /* interactive moment: flip every row from what the dashboard said to what was true */
-    const ROWS=[{"label": "Model version", "before": ["support-v4.1", "dim"], "after": ["support-v4.1 (unchanged)", "ok"]}, {"label": "Answer completeness (judge)", "before": ["0.71 ▼ ALERT", "bad"], "after": ["0.71 ▼ ALERT", "bad"]}, {"label": "Suspected cause", "before": ["model regression", "bad"], "after": ["system prompt variant", "warn"]}, {"label": "Flag: concise_answers_v2", "before": ["not in dashboard", "dim"], "after": ["ON · 30% · set by growth team", "bad"]}, {"label": "Rollback effect", "before": ["pending", "dim"], "after": ["none — wrong layer", "bad"]}];
+    const ROWS=[{"label": "Cache", "before": ["HIT · 38ms", "ok"], "after": ["HIT · 38ms", "ok"]}, {"label": "Answer", "before": ["“Yes, within 60 days.”", "ok"], "after": ["“Yes, within 60 days.”", "bad"]}, {"label": "Current policy (KB)", "before": ["(not checked on hit)", "dim"], "after": ["30 days · unopened only · v14", "warn"]}, {"label": "Policy version at cache write", "before": ["(not stored)", "dim"], "after": ["v13", "bad"]}, {"label": "Cache hit rate", "before": ["64% ▲ cost savings", "ok"], "after": ["64% of answers unverified", "bad"]}];
     const im=document.getElementById('im');
     function setState(after){
       ROWS.forEach((r,i)=>{
@@ -212,8 +211,8 @@
     document.getElementById('im-rst').addEventListener('click',()=>setState(false));
 
     /* share */
-    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-model-was-fine.html';
-    const ART_TITLE="The model was fine";
+    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-cache-that-answered-last-quarter.html';
+    const ART_TITLE="The Cache That Answered Last Quarter";
     document.querySelectorAll('.shr').forEach(b=>b.addEventListener('click',()=>{
       const u=b.dataset.net==='x'
         ?'https://twitter.com/intent/tweet?text='+encodeURIComponent('"'+b.dataset.quote+'" — '+ART_TITLE+' '+ART_URL)

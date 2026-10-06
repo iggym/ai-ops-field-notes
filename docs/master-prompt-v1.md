@@ -56,9 +56,9 @@ Before writing, decide on:
   - "When you build agentic loops, never let an LLM decide when to stop trying."
 - **The interactive moment:** A small simulation the reader triggers that makes the mechanism visible in under 10 seconds.
 
-Do not reuse a topic that overlaps strongly with `{{EXISTING_SLUGS}}`. The published catalog already covers 200-OK semantic failures, green dashboards over schema drift, floating model aliases, silent RAG dependency outages, unbounded and agentic retry loops, runaway agent cost, embedding-drift false positives, feature-flag false positives, and rollback/embedding-dimension mismatch. Find a **new** failure mode, or an angle on a covered one that is clearly distinct.
+Do not reuse a topic that overlaps strongly with `{{EXISTING_SLUGS}}`. The published catalog already covers 200-OK semantic failures, green dashboards over schema drift, floating model aliases, silent RAG dependency outages, unbounded and agentic retry loops, runaway agent cost, embedding-drift false positives, feature-flag false positives, rollback/embedding-dimension mismatch, indirect prompt injection reaching a payments tool, PII leaking through tracing, silent context-window truncation, silent model-fallback degradation, stale semantic caches, and fail-open structured-output parsing. Find a **new** failure mode, or an angle on a covered one that is clearly distinct.
 
-Under-covered territory to prefer: prompt injection reaching a tool call, PII leaking through logs or traces, guardrail false negatives, eval-set contamination, LLM-as-judge drift, tokenizer or context-window truncation, rate-limit fallback cascades, model fallback chains degrading quality silently, stale prompt caches, tool-schema drift, multi-agent deadlocks, streaming partial-response corruption, structured-output parser fallbacks, timezone or locale bugs in prompts, provider region failover, batch-job silent truncation, and guardrail latency budgets causing timeouts.
+Under-covered territory to prefer: guardrail false negatives, eval-set contamination, LLM-as-judge drift, tokenizer mismatches, tool-schema drift, multi-agent deadlocks, streaming partial-response corruption, timezone or locale bugs in prompts, provider region failover, batch-job silent truncation, guardrail latency budgets causing timeouts, memory poisoning in long-running agents, and MCP/tool-server permission sprawl.
 
 ## STEP 2: Write the dispatch
 
@@ -230,10 +230,11 @@ Return exactly three fenced blocks, in this order, and nothing else:
 
 1. Save the HTML as `articles/<slug>.html`. Open it locally and click through the interactive moment, including on mobile width and with reduced motion enabled.
 2. Append the JSON entry to `metadata.json` → `articles[]` and validate it with `python3 -m json.tool metadata.json`.
-3. Confirm that the `<title>` in the new file matches its own article. A copy-paste from another article is a known failure; see `tasks/tasks.md`.
+3. Run `python3 scripts/validate.py`. It checks that the `<title>` matches the metadata, that no file duplicates another article, and that no placeholders or citation tokens are left over.
 4. Commit with the message `Add dispatch: <Title>`.
 5. After GitHub Pages deploys, check that the homepage feed shows the entry and that the share links resolve.
 
 ## Changelog
 
+- **v1.1 (2026-10-06):** Updated the covered-topics list after generating six new dispatches, and pointed the publishing checklist at `scripts/validate.py`.
 - **v1 (2026-10-06):** Initial master prompt, derived from the 11 published dispatches. It standardizes on the IBM Plex Serif/Mono dark template used by `two-incidents-one-revert.html` and `green-alerts-silent-rag.html`.
