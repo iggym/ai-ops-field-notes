@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The model was fine — AI Ops Field Notes</title>
-  <meta name="description" content="The model was fine. It was doing exactly what it was told — by someone who wasn&#x27;t in the incident channel.">
-  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-model-was-fine.html">
+  <title>The Fallback Nobody Noticed — AI Ops Field Notes</title>
+  <meta name="description" content="A fallback that silently changes quality isn&#x27;t resilience. It&#x27;s an outage you&#x27;ve chosen not to measure.">
+  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-fallback-nobody-noticed.html">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="AI Ops Field Notes">
-  <meta property="og:title" content="The model was fine">
-  <meta property="og:description" content="The model was fine. It was doing exactly what it was told — by someone who wasn&#x27;t in the incident channel.">
-  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-model-was-fine.html">
-  <meta property="article:published_time" content="2024-12-03">
+  <meta property="og:title" content="The Fallback Nobody Noticed">
+  <meta property="og:description" content="A fallback that silently changes quality isn&#x27;t resilience. It&#x27;s an outage you&#x27;ve chosen not to measure.">
+  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-fallback-nobody-noticed.html">
+  <meta property="article:published_time" content="2026-09-02">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="The model was fine">
-  <meta name="twitter:description" content="The model was fine. It was doing exactly what it was told — by someone who wasn&#x27;t in the incident channel.">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The model was fine", "description": "The model was fine. It was doing exactly what it was told — by someone who wasn't in the incident channel.", "datePublished": "2024-12-03", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-model-was-fine.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
+  <meta name="twitter:title" content="The Fallback Nobody Noticed">
+  <meta name="twitter:description" content="A fallback that silently changes quality isn&#x27;t resilience. It&#x27;s an outage you&#x27;ve chosen not to measure.">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The Fallback Nobody Noticed", "description": "A fallback that silently changes quality isn't resilience. It's an outage you've chosen not to measure.", "datePublished": "2026-09-02", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-fallback-nobody-noticed.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
@@ -121,60 +121,62 @@
 
   <main>
     <article>
-      <h1 class="hero-title">The model was fine</h1>
-      <div class="hero-meta">2024-12-03 · dispatch</div>
+      <h1 class="hero-title">The Fallback Nobody Noticed</h1>
+      <div class="hero-meta">2026-09-02 · dispatch</div>
 
       <div class="dispatch-body">
-        <p>The completeness alert fired at 10:42 on a Tuesday. The LLM-as-judge score for the support assistant had dropped from 0.88 to 0.71 in under an hour, and the hallucination detector was flagging answers as “missing required steps.” The on-call engineer, Priya, pulled a sample. The answers were short. Clipped. One refund explanation ended mid-procedure, three steps in.</p>
-        <p>It looked like a model regression. The provider had announced a minor update the week before, and the shape matched: same questions, worse answers, no code deploys on their side. She opened a ticket with the provider and started the runbook for pinning the previous model snapshot.</p>
-        <p>The pin went out at 11:20. The score didn't move.</p>
-        <p>That was the first useful signal. If rolling back the model doesn't change the output, the model isn't the variable. She diffed the full request payloads between a good answer from Monday and a bad one from that morning. The user messages were similar. The model ID was identical. The system prompt was not.</p>
-        <p>The bad request had an extra line at the bottom: “Keep every answer under 60 words. Customers prefer brevity.”</p>
-        <p>It came from a feature flag called <code>concise_answers_v2</code>. The growth team had launched an A/B test that morning to see whether shorter answers improved CSAT. The flag lived in the product experimentation tool, not the deploy pipeline, so it never showed up in the change log the on-call engineer checked first. It was serving the new prompt to 30% of traffic.</p>
-        <div class="im" id="im" role="region" aria-label="Quality alert simulation">
-          <div class="im-cap">Same model. Same eval. One flag.</div>
+        <p>The support director raised it in a weekly business review, not an incident channel. Escalations from the AI assistant to human agents were up 38% over two weeks. Her team was drowning. Was the assistant broken?</p>
+        <p>Engineering pulled up the dashboards and said no. Success rate 99.97%. Error rate flat. And p95 latency had actually improved, from 2.6 seconds to 1.8. If anything, the assistant looked healthier than it had all quarter.</p>
+        <p>That latency improvement should have been the clue.</p>
+        <p>Nobody on the support side could see the router, and nobody on the platform side could see escalations. Each team's dashboard was green by its own definition.</p>
+        <p>The model router had a fallback chain: primary model first, and on a timeout or a 429 rate-limit response, retry once on a smaller, cheaper, faster model. It had been added after a provider outage the previous spring, and it worked as designed. When the primary was unavailable, users still got an answer.</p>
+        <p>Nine days before the director's meeting, a marketing campaign had pushed traffic up 60%. The team had not raised their rate limit tier with the provider. The primary started returning 429s at peak, and the router did exactly what it was built to do.</p>
+        <div class="im" id="im" role="region" aria-label="Model fallback routing simulation">
+          <div class="im-cap">Router dashboard, day 9</div>
           <div aria-live="polite">
           <div class="im-row">
-            <div class="im-l">Model version</div>
-            <div class="im-r dim" id="r0">support-v4.1</div>
+            <div class="im-l">Success rate</div>
+            <div class="im-r ok" id="r0">99.97%</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Answer completeness (judge)</div>
-            <div class="im-r bad" id="r1">0.71 ▼ ALERT</div>
+            <div class="im-l">p95 latency</div>
+            <div class="im-r ok" id="r1">1.8s ▼ improved</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Suspected cause</div>
-            <div class="im-r bad" id="r2">model regression</div>
+            <div class="im-l">Served by primary model</div>
+            <div class="im-r dim" id="r2">(not charted)</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Flag: concise_answers_v2</div>
-            <div class="im-r dim" id="r3">not in dashboard</div>
+            <div class="im-l">Served by fallback model</div>
+            <div class="im-r dim" id="r3">(not charted)</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Rollback effect</div>
-            <div class="im-r dim" id="r4">pending</div>
+            <div class="im-l">Escalation-to-human rate</div>
+            <div class="im-r dim" id="r4">(different dashboard)</div>
           </div>
           </div>
-          <div class="im-note" id="im-note">⚠ concise_answers_v2 was serving a different system prompt to 30% of traffic. The judge was scoring a 60-word cap as &#x27;incomplete&#x27;.</div>
-          <button class="im-btn" id="im-go" type="button">Show the flag state</button>
+          <div class="im-note" id="im-note">⚠ 41% of requests had been served by the fallback model for nine days. The router counted a fallback as a success.</div>
+          <button class="im-btn" id="im-go" type="button">Break down by model</button>
           <button class="im-btn" id="im-rst" type="button" style="display:none">Reset</button>
         </div>
-        <p>The model was doing exactly what it was told. A 60-word cap on a seven-step refund procedure produces a three-step answer, and the judge, correctly, scored it as incomplete. Every alert was true. The diagnosis was wrong, because the system that changed the behavior wasn't in the incident channel, and nobody in the incident channel knew it existed.</p>
+        <p>The router logged a fallback as a success, because from the transport's point of view it was one. Nothing on the main dashboard broke out traffic by serving model. The faster p95 was the smaller model pulling the average down. For nine days, 41% of conversations, concentrated in the busiest hours, were handled by a model that had never been evaluated on the support domain. It was fluent. It was polite. It was much worse at multi-step account problems, and it gave up and escalated far more readily.</p>
         <div class="pq">
-          <div class="pq-txt">“If rolling back the model doesn't change the output, the model isn't the variable.”</div>
+          <div class="pq-txt">“The router logged a fallback as a success, because from the transport's point of view it was one.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="If rolling back the model doesn&#x27;t change the output, the model isn&#x27;t the variable." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="If rolling back the model doesn&#x27;t change the output, the model isn&#x27;t the variable." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="The router logged a fallback as a success, because from the transport&#x27;s point of view it was one." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="The router logged a fallback as a success, because from the transport&#x27;s point of view it was one." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
-        <p>The fix took four minutes once they found it: turn the flag off. Scores recovered within the next eval window. The cleanup took longer. The team moved prompt-affecting flags into the same audit trail as deploys, added the active flag set to every trace as span attributes, and taught the alert to group scores by flag variant. A split that clean, 30% bad and 70% fine, would have pointed at the experiment in the first minute.</p>
-        <p>They also wrote down the thing that stung: in an LLM system, the prompt is code, and anyone who can edit it is shipping to production. The experimentation tool had more deploy authority than the deploy pipeline, and nobody had drawn that box on the architecture diagram.</p>
-        <p>The provider ticket was closed with an apology. The model was fine. It was doing exactly what it was told — by someone who wasn't in the incident channel.</p>
+        <p>The fix for the immediate problem took one email: raise the rate limit tier. Fallback traffic dropped below 2% within the hour, and escalations returned to baseline over the next three days.</p>
+        <p>They also replayed 500 fallback conversations through the primary model. The primary resolved 71% of them without a human. The fallback had managed 44%.</p>
+        <p>The structural fixes took longer. The fallback rate became a top-line SLO with its own alert, at 5% over 15 minutes. Every response now carries the serving model as a trace attribute, and the quality dashboard is split by it. The fallback model went through the same offline eval suite as the primary, and for two intents where it scored badly, the router now returns a graceful “please hold for an agent” instead of falling back at all.</p>
+        <p>And the team rewrote one line in their runbook. A fallback is a degraded mode, not a success state, and degraded modes need a clock on them.</p>
+        <p>A fallback that silently changes quality isn't resilience. It's an outage you've chosen not to measure.</p>
         <div class="pq">
-          <div class="pq-txt">“The model was fine. It was doing exactly what it was told — by someone who wasn't in the incident channel.”</div>
+          <div class="pq-txt">“A fallback that silently changes quality isn't resilience. It's an outage you've chosen not to measure.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="The model was fine. It was doing exactly what it was told — by someone who wasn&#x27;t in the incident channel." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="The model was fine. It was doing exactly what it was told — by someone who wasn&#x27;t in the incident channel." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="A fallback that silently changes quality isn&#x27;t resilience. It&#x27;s an outage you&#x27;ve chosen not to measure." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="A fallback that silently changes quality isn&#x27;t resilience. It&#x27;s an outage you&#x27;ve chosen not to measure." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
       </div>
@@ -182,7 +184,7 @@
   </main>
 
   <footer>
-    <p>Composite dispatch based on documented prompt-configuration and feature-flag false-positive patterns. No specific company incident referenced.</p>
+    <p>Composite dispatch based on documented model-fallback and rate-limit degradation patterns. No specific company incident referenced.</p>
     <p style="margin-top:.5rem"><a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a></p>
   </footer>
 
@@ -195,7 +197,7 @@
     });
 
     /* interactive moment: flip every row from what the dashboard said to what was true */
-    const ROWS=[{"label": "Model version", "before": ["support-v4.1", "dim"], "after": ["support-v4.1 (unchanged)", "ok"]}, {"label": "Answer completeness (judge)", "before": ["0.71 ▼ ALERT", "bad"], "after": ["0.71 ▼ ALERT", "bad"]}, {"label": "Suspected cause", "before": ["model regression", "bad"], "after": ["system prompt variant", "warn"]}, {"label": "Flag: concise_answers_v2", "before": ["not in dashboard", "dim"], "after": ["ON · 30% · set by growth team", "bad"]}, {"label": "Rollback effect", "before": ["pending", "dim"], "after": ["none — wrong layer", "bad"]}];
+    const ROWS=[{"label": "Success rate", "before": ["99.97%", "ok"], "after": ["99.97%", "ok"]}, {"label": "p95 latency", "before": ["1.8s ▼ improved", "ok"], "after": ["1.8s (fallback is faster)", "warn"]}, {"label": "Served by primary model", "before": ["(not charted)", "dim"], "after": ["59%", "warn"]}, {"label": "Served by fallback model", "before": ["(not charted)", "dim"], "after": ["41% · HTTP 429 upstream", "bad"]}, {"label": "Escalation-to-human rate", "before": ["(different dashboard)", "dim"], "after": ["+38% vs. baseline", "bad"]}];
     const im=document.getElementById('im');
     function setState(after){
       ROWS.forEach((r,i)=>{
@@ -212,8 +214,8 @@
     document.getElementById('im-rst').addEventListener('click',()=>setState(false));
 
     /* share */
-    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-model-was-fine.html';
-    const ART_TITLE="The model was fine";
+    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-fallback-nobody-noticed.html';
+    const ART_TITLE="The Fallback Nobody Noticed";
     document.querySelectorAll('.shr').forEach(b=>b.addEventListener('click',()=>{
       const u=b.dataset.net==='x'
         ?'https://twitter.com/intent/tweet?text='+encodeURIComponent('"'+b.dataset.quote+'" — '+ART_TITLE+' '+ART_URL)

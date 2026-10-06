@@ -7,145 +7,330 @@
     "audience": "Practitioners and on-call engineers",
     "description": "Short, sharp incident dispatches from AI systems in production — top-of-funnel, war-story shaped, no lessons-learned headers."
   },
-  "articles": [{
-  "title": "When Green Means Dead",
-  "hook": "In LLM systems, the 200 OK is the lie — your monitoring watches the transport contract while the real contract is semantic.",
-  "date": "2025-01-05",
-  "status": "published",
-  "pinned": false,
-  "reading_time_minutes": 5,
-  "tags": ["invisible-incident", "llm-observability", "semantic-canary", "caching-failure"],
-  "path": "articles/when-green-means-dead.html"
-},{
-  "id": "0011",
-  "slug": "the-green-dashboard-that-lied",
-  "title": "The Green Dashboard That Lied",
-  "hook": "When your primary dependency is a probabilistic black box managed by a third party, a 200 OK status code isn't a success signal. It's just an acknowledgment that your request arrived.",
-  "path": "articles/the-green-dashboard-that-lied.html",
-  "date": "2026-03-12",
-  "status": "published",
-  "format": "dispatch",
-  "tags": ["observability", "json-schema", "model-drift"],
-  "reading_time_minutes": 3,
-  "pinned": false,
-  "research_window": "2026-01-29 to 2026-03-12"
-},{
-  "id": "0014",
-  "slug": "the-commit-that-never-happened",
-  "title": "The Commit That Never Happened",
-  "hook": "Floating model aliases are unversioned dependencies running third-party code in your production path.",
-  "path": "articles/the-commit-that-never-happened.html",
-  "date": "2026-01-14",
-  "status": "published",
-  "format": "dispatch",
-  "tags": ["model-drift", "json-schema", "api-reliability"],
-  "reading_time_minutes": 3,
-  "pinned": false,
-  "research_window": "2025-12-03 to 2026-01-14"
-},{
-  "id": "0217",
-  "slug": "green-alerts-silent-rag",
-  "title": "Green alerts, silent RAG",
-  "hook": "The page that caught this came from a person, not a pager. The pager was green.",
-  "path": "articles/green-alerts-silent-rag.html",
-  "date": "2025-02-17",
-  "status": "published",
-  "format": "dispatch",
-  "tags": ["dependency-outage", "observability-gap", "partial-outage"],
-  "reading_time_minutes": 3,
-  "pinned": false,
-  "research_window": "2025-01-06 to 2025-02-17"
-}, {
-  "id": "9104",
-  "slug": "the-eleven-day-retry-loop",
-  "title": "The Eleven Day Retry Loop",
-  "hook": "A retry loop without an upper bound isn't a feature. It’s a bug waiting for a bad schema change.",
-  "path": "articles/the-eleven-day-retry-loop.html",
-  "date": "2026-05-12",
-  "status": "published",
-  "format": "dispatch",
-  "tags": ["runaway-process", "retry-loop", "agentic-failure"],
-  "reading_time_minutes": 3,
-  "pinned": false,
-  "research_window": "2026-04-28 to 2026-05-12"
-},{
-  "id": "1203",
-  "slug": "the-model-was-fine",
-  "title": "The model was fine",
-  "hook": "The model was fine. It was doing exactly what it was told — by someone who wasn't in the incident channel.",
-  "path": "articles/the-model-was-fine.html",
-  "date": "2024-12-03",
-  "status": "published",
-  "format": "dispatch",
-  "tags": ["false-positive", "feature-flag", "ai-monitoring"],
-  "reading_time_minutes": 3,
-  "pinned": false,
-  "research_window": "2024-10-29 to 2024-12-03"
-}, {
-  "id": "0021",
-  "slug": "the-loop-that-ate-the-key",
-  "title": "The Loop That Ate The Key",
-  "hook": "When you build agentic loops, never let an LLM decide when to stop trying.",
-  "path": "articles/the-loop-that-ate-the-key.html",
-  "date": "2026-05-20",
-  "status": "published",
-  "format": "dispatch",
-  "tags": ["retry-loop", "agentic-ai", "cost-spike"],
-  "reading_time_minutes": 3,
-  "pinned": false,
-  "research_window": "2026-04-08 to 2026-05-20"
-}, {
-  "id": "4202",
-  "slug": "the-4200-weekend",
-  "title": "The $4,200 Weekend",
-  "hook": "The gap isn't instrumentation. It's enforcement.",
-  "path": "articles/the-4200-weekend.html",
-  "date": "2026-06-13",
-  "status": "published",
-  "format": "dispatch",
-  "tags": ["cost-spike", "circuit-breakers", "agent-observability"],
-  "reading_time_minutes": 3,
-  "pinned": false,
-  "research_window": "2026-04-18 through 2026-06-13"
-},{
-  "id": "0284",
-  "slug": "the-message-that-never-sent",
-  "title": "The Message That Never Sent",
-  "hook": "Autonomy without a way to say stop isn't autonomy. It's just a while loop with better prose.",
-  "path": "articles/the-message-that-never-sent.html",
-  "date": "2026-03-18",
-  "status": "published",
-  "format": "dispatch",
-  "tags": ["cost-spike", "circuit-breaker", "agentic-loops"],
-  "reading_time_minutes": 3,
-  "pinned": false,
-  "research_window": "2026-02-11 to 2026-03-18"
-},{
-  "id": "8473",
-  "slug": "the-ghost-in-the-vector-space",
-  "title": "The Ghost in the Vector Space",
-  "hook": "When you rely solely on embedding geometry to monitor your AI, you aren't measuring intelligence. You are measuring how often your partners break their API contracts.",
-  "path": "articles/the-ghost-in-the-vector-space.html",
-  "date": "2026-02-24",
-  "status": "published",
-  "format": "dispatch",
-  "tags": ["false-positive", "data-drift", "embedding-monitoring"],
-  "reading_time_minutes": 3,
-  "pinned": false,
-  "research_window": "2026-01-13 to 2026-02-24"
-}, {
-  "id": "0422",
-  "slug": "two-incidents-one-revert",
-  "title": "Two incidents, one revert",
-  "hook": "The rollback fixed the alert. Then the rollback became the incident.",
-  "path": "articles/two-incidents-one-revert.html",
-  "date": "2025-04-22",
-  "status": "published",
-  "format": "dispatch",
-  "tags": ["rollback-gone-wrong", "embedding-mismatch", "vector-database"],
-  "reading_time_minutes": 3,
-  "pinned": false,
-  "research_window": "2025-04-01 to 2025-04-22"
-}
+  "articles": [
+    {
+      "id": "0929",
+      "slug": "the-parser-said-low-risk",
+      "title": "The Parser Said Low Risk",
+      "hook": "When your parser can't read the model's answer, the default you pick is the answer. Choose it like one.",
+      "path": "articles/the-parser-said-low-risk.html",
+      "date": "2026-09-29",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "structured-output",
+        "fail-open",
+        "json-schema"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2026-08-18 to 2026-09-29",
+      "source_type": "composite"
+    },
+    {
+      "id": "0916",
+      "slug": "the-cache-that-answered-last-quarter",
+      "title": "The Cache That Answered Last Quarter",
+      "hook": "A semantic cache doesn't know what changed. It only knows what's similar, and last quarter's answer is very similar.",
+      "path": "articles/the-cache-that-answered-last-quarter.html",
+      "date": "2026-09-16",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "semantic-cache",
+        "stale-data",
+        "rag-failure"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2026-08-05 to 2026-09-16",
+      "source_type": "composite"
+    },
+    {
+      "id": "0902",
+      "slug": "the-fallback-nobody-noticed",
+      "title": "The Fallback Nobody Noticed",
+      "hook": "A fallback that silently changes quality isn't resilience. It's an outage you've chosen not to measure.",
+      "path": "articles/the-fallback-nobody-noticed.html",
+      "date": "2026-09-02",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "model-fallback",
+        "rate-limiting",
+        "silent-degradation"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2026-07-22 to 2026-09-02",
+      "source_type": "composite"
+    },
+    {
+      "id": "0819",
+      "slug": "the-contract-ended-at-page-41",
+      "title": "The Contract Ended at Page 41",
+      "hook": "The model answered the question correctly about the document it was given. It just wasn't given the whole document.",
+      "path": "articles/the-contract-ended-at-page-41.html",
+      "date": "2026-08-19",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "context-truncation",
+        "silent-failure",
+        "document-ai"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2026-07-08 to 2026-08-19",
+      "source_type": "composite"
+    },
+    {
+      "id": "0804",
+      "slug": "the-trace-that-kept-everything",
+      "title": "The Trace That Kept Everything",
+      "hook": "You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.",
+      "path": "articles/the-trace-that-kept-everything.html",
+      "date": "2026-08-04",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "pii-leak",
+        "llm-observability",
+        "data-retention"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2026-06-23 to 2026-08-04",
+      "source_type": "composite"
+    },
+    {
+      "id": "0714",
+      "slug": "the-invoice-that-gave-orders",
+      "title": "The Invoice That Gave Orders",
+      "hook": "The agent didn't get hacked. It read a document and did what the document said, which is the job you gave it.",
+      "path": "articles/the-invoice-that-gave-orders.html",
+      "date": "2026-07-14",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "prompt-injection",
+        "tool-call",
+        "agentic-failure"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2026-06-02 to 2026-07-14",
+      "source_type": "composite"
+    },
+    {
+      "id": "4202",
+      "slug": "the-4200-weekend",
+      "title": "The $4,200 Weekend",
+      "hook": "The gap isn't instrumentation. It's enforcement.",
+      "path": "articles/the-4200-weekend.html",
+      "date": "2026-06-13",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "cost-spike",
+        "circuit-breakers",
+        "llm-observability"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2026-04-18 to 2026-06-13",
+      "source_type": "composite"
+    },
+    {
+      "id": "0021",
+      "slug": "the-loop-that-ate-the-key",
+      "title": "The Loop That Ate The Key",
+      "hook": "When you build agentic loops, never let an LLM decide when to stop trying.",
+      "path": "articles/the-loop-that-ate-the-key.html",
+      "date": "2026-05-20",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "retry-loop",
+        "agentic-failure",
+        "cost-spike"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2026-04-08 to 2026-05-20",
+      "source_type": "composite"
+    },
+    {
+      "id": "9104",
+      "slug": "the-eleven-day-retry-loop",
+      "title": "The Eleven Day Retry Loop",
+      "hook": "A retry loop without an upper bound isn't a feature. It’s a bug waiting for a bad schema change.",
+      "path": "articles/the-eleven-day-retry-loop.html",
+      "date": "2026-05-12",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "runaway-process",
+        "retry-loop",
+        "agentic-failure"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2026-04-28 to 2026-05-12",
+      "source_type": "composite"
+    },
+    {
+      "id": "0284",
+      "slug": "the-message-that-never-sent",
+      "title": "The Message That Never Sent",
+      "hook": "Autonomy without a way to say stop isn't autonomy. It's just a while loop with better prose.",
+      "path": "articles/the-message-that-never-sent.html",
+      "date": "2026-03-18",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "cost-spike",
+        "circuit-breakers",
+        "agentic-failure"
+      ],
+      "reading_time_minutes": 4,
+      "pinned": false,
+      "research_window": "2026-02-11 to 2026-03-18",
+      "source_type": "single-source-anonymized"
+    },
+    {
+      "id": "0011",
+      "slug": "the-green-dashboard-that-lied",
+      "title": "The Green Dashboard That Lied",
+      "hook": "When your primary dependency is a probabilistic black box managed by a third party, a 200 OK status code isn't a success signal. It's just an acknowledgment that your request arrived.",
+      "path": "articles/the-green-dashboard-that-lied.html",
+      "date": "2026-03-12",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "llm-observability",
+        "json-schema",
+        "model-drift"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2026-01-29 to 2026-03-12",
+      "source_type": "composite"
+    },
+    {
+      "id": "8473",
+      "slug": "the-ghost-in-the-vector-space",
+      "title": "The Ghost in the Vector Space",
+      "hook": "When you rely solely on embedding geometry to monitor your AI, you aren't measuring intelligence. You are measuring how often your partners break their API contracts.",
+      "path": "articles/the-ghost-in-the-vector-space.html",
+      "date": "2026-02-24",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "false-positive",
+        "data-drift",
+        "embedding-monitoring"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2026-01-13 to 2026-02-24",
+      "source_type": "composite"
+    },
+    {
+      "id": "0014",
+      "slug": "the-commit-that-never-happened",
+      "title": "The Commit That Never Happened",
+      "hook": "Floating model aliases are unversioned dependencies running third-party code in your production path.",
+      "path": "articles/the-commit-that-never-happened.html",
+      "date": "2026-01-14",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "model-drift",
+        "json-schema",
+        "api-reliability"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2025-12-03 to 2026-01-14",
+      "source_type": "composite"
+    },
+    {
+      "id": "0422",
+      "slug": "two-incidents-one-revert",
+      "title": "Two incidents, one revert",
+      "hook": "The rollback fixed the alert. Then the rollback became the incident.",
+      "path": "articles/two-incidents-one-revert.html",
+      "date": "2025-04-22",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "rollback-gone-wrong",
+        "embedding-mismatch",
+        "vector-database"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2025-04-01 to 2025-04-22",
+      "source_type": "composite"
+    },
+    {
+      "id": "0217",
+      "slug": "green-alerts-silent-rag",
+      "title": "Green alerts, silent RAG",
+      "hook": "The page that caught this came from a person, not a pager. The pager was green.",
+      "path": "articles/green-alerts-silent-rag.html",
+      "date": "2025-02-17",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "dependency-outage",
+        "observability-gap",
+        "partial-outage"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2025-01-06 to 2025-02-17",
+      "source_type": "composite"
+    },
+    {
+      "id": "0105",
+      "slug": "when-green-means-dead",
+      "title": "When Green Means Dead",
+      "hook": "In LLM systems, the 200 OK is the lie — your monitoring watches the transport contract while the real contract is semantic.",
+      "path": "articles/when-green-means-dead.html",
+      "date": "2025-01-05",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "invisible-incident",
+        "llm-observability",
+        "semantic-canary",
+        "caching-failure"
+      ],
+      "reading_time_minutes": 6,
+      "pinned": false,
+      "research_window": "2024-12-08 to 2025-01-05",
+      "source_type": "public-postmortem"
+    },
+    {
+      "id": "1203",
+      "slug": "the-model-was-fine",
+      "title": "The model was fine",
+      "hook": "The model was fine. It was doing exactly what it was told — by someone who wasn't in the incident channel.",
+      "path": "articles/the-model-was-fine.html",
+      "date": "2024-12-03",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "false-positive",
+        "feature-flag",
+        "ai-monitoring"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2024-10-29 to 2024-12-03",
+      "source_type": "composite"
+    }
   ]
 }

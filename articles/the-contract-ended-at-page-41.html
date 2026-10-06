@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The model was fine — AI Ops Field Notes</title>
-  <meta name="description" content="The model was fine. It was doing exactly what it was told — by someone who wasn&#x27;t in the incident channel.">
-  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-model-was-fine.html">
+  <title>The Contract Ended at Page 41 — AI Ops Field Notes</title>
+  <meta name="description" content="The model answered the question correctly about the document it was given. It just wasn&#x27;t given the whole document.">
+  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-contract-ended-at-page-41.html">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="AI Ops Field Notes">
-  <meta property="og:title" content="The model was fine">
-  <meta property="og:description" content="The model was fine. It was doing exactly what it was told — by someone who wasn&#x27;t in the incident channel.">
-  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-model-was-fine.html">
-  <meta property="article:published_time" content="2024-12-03">
+  <meta property="og:title" content="The Contract Ended at Page 41">
+  <meta property="og:description" content="The model answered the question correctly about the document it was given. It just wasn&#x27;t given the whole document.">
+  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-contract-ended-at-page-41.html">
+  <meta property="article:published_time" content="2026-08-19">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="The model was fine">
-  <meta name="twitter:description" content="The model was fine. It was doing exactly what it was told — by someone who wasn&#x27;t in the incident channel.">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The model was fine", "description": "The model was fine. It was doing exactly what it was told — by someone who wasn't in the incident channel.", "datePublished": "2024-12-03", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-model-was-fine.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
+  <meta name="twitter:title" content="The Contract Ended at Page 41">
+  <meta name="twitter:description" content="The model answered the question correctly about the document it was given. It just wasn&#x27;t given the whole document.">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The Contract Ended at Page 41", "description": "The model answered the question correctly about the document it was given. It just wasn't given the whole document.", "datePublished": "2026-08-19", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-contract-ended-at-page-41.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
@@ -121,60 +121,62 @@
 
   <main>
     <article>
-      <h1 class="hero-title">The model was fine</h1>
-      <div class="hero-meta">2024-12-03 · dispatch</div>
+      <h1 class="hero-title">The Contract Ended at Page 41</h1>
+      <div class="hero-meta">2026-08-19 · dispatch</div>
 
       <div class="dispatch-body">
-        <p>The completeness alert fired at 10:42 on a Tuesday. The LLM-as-judge score for the support assistant had dropped from 0.88 to 0.71 in under an hour, and the hallucination detector was flagging answers as “missing required steps.” The on-call engineer, Priya, pulled a sample. The answers were short. Clipped. One refund explanation ended mid-procedure, three steps in.</p>
-        <p>It looked like a model regression. The provider had announced a minor update the week before, and the shape matched: same questions, worse answers, no code deploys on their side. She opened a ticket with the provider and started the runbook for pinning the previous model snapshot.</p>
-        <p>The pin went out at 11:20. The score didn't move.</p>
-        <p>That was the first useful signal. If rolling back the model doesn't change the output, the model isn't the variable. She diffed the full request payloads between a good answer from Monday and a bad one from that morning. The user messages were similar. The model ID was identical. The system prompt was not.</p>
-        <p>The bad request had an extra line at the bottom: “Keep every answer under 60 words. Customers prefer brevity.”</p>
-        <p>It came from a feature flag called <code>concise_answers_v2</code>. The growth team had launched an A/B test that morning to see whether shorter answers improved CSAT. The flag lived in the product experimentation tool, not the deploy pipeline, so it never showed up in the change log the on-call engineer checked first. It was serving the new prompt to 30% of traffic.</p>
-        <div class="im" id="im" role="region" aria-label="Quality alert simulation">
-          <div class="im-cap">Same model. Same eval. One flag.</div>
+        <p>The legal ops team found it when a vendor exercised a clause the review tool said didn't exist. The vendor sent 30 days' notice of termination for convenience on a three-year master services agreement. The contract summary in the review system, generated five months earlier, said in a clean green box: “Termination for convenience: None found. Termination only for material breach.”</p>
+        <p>Clause 19.2, on page 47, said otherwise.</p>
+        <p>The review pipeline was eighteen months old and well-liked. Upload a contract, get a structured summary: parties, term, renewal, termination rights, liability caps, indemnities. It had been spot-checked against lawyer reviews at launch with good agreement. It returned 200 OK on every request. It had no error rate to speak of.</p>
+        <p>An engineer re-ran the original file and got the same answer. Then she asked the model directly to quote clause 19. It replied that the document it had been given ended at clause 16.</p>
+        <p>Nobody had ever asked it that before. Every previous check had compared its summary against a lawyer's summary, never its input against the file.</p>
+        <div class="im" id="im" role="region" aria-label="Context truncation simulation">
+          <div class="im-cap">Contract review: what the model received</div>
           <div aria-live="polite">
           <div class="im-row">
-            <div class="im-l">Model version</div>
-            <div class="im-r dim" id="r0">support-v4.1</div>
+            <div class="im-l">Document</div>
+            <div class="im-r ok" id="r0">MSA_Vendor_Final.pdf · 58 pages</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Answer completeness (judge)</div>
-            <div class="im-r bad" id="r1">0.71 ▼ ALERT</div>
+            <div class="im-l">Status</div>
+            <div class="im-r ok" id="r1">200 OK · reviewed</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Suspected cause</div>
-            <div class="im-r bad" id="r2">model regression</div>
+            <div class="im-l">Termination for convenience</div>
+            <div class="im-r ok" id="r2">None found</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Flag: concise_answers_v2</div>
-            <div class="im-r dim" id="r3">not in dashboard</div>
+            <div class="im-l">Tokens in document</div>
+            <div class="im-r dim" id="r3">(not shown)</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Rollback effect</div>
-            <div class="im-r dim" id="r4">pending</div>
+            <div class="im-l">Tokens sent to model</div>
+            <div class="im-r dim" id="r4">(not shown)</div>
           </div>
           </div>
-          <div class="im-note" id="im-note">⚠ concise_answers_v2 was serving a different system prompt to 30% of traffic. The judge was scoring a 60-word cap as &#x27;incomplete&#x27;.</div>
-          <button class="im-btn" id="im-go" type="button">Show the flag state</button>
+          <div class="im-note" id="im-note">⚠ Middleware trimmed to fit the 32k budget by dropping from the end. Pages 42–58 (termination, indemnity, change of control) were never sent. No error, no flag.</div>
+          <button class="im-btn" id="im-go" type="button">Show token budget</button>
           <button class="im-btn" id="im-rst" type="button" style="display:none">Reset</button>
         </div>
-        <p>The model was doing exactly what it was told. A 60-word cap on a seven-step refund procedure produces a three-step answer, and the judge, correctly, scored it as incomplete. Every alert was true. The diagnosis was wrong, because the system that changed the behavior wasn't in the incident channel, and nobody in the incident channel knew it existed.</p>
+        <p>The pipeline had a preprocessing step written when the team used a model with a 32,000-token context. If the extracted text exceeded the budget, the step trimmed it to fit. It trimmed from the end, because early versions of the prompt put instructions after the document and the developer wanted those to survive. It logged the trim at DEBUG level. Production ran at INFO.</p>
         <div class="pq">
-          <div class="pq-txt">“If rolling back the model doesn't change the output, the model isn't the variable.”</div>
+          <div class="pq-txt">“It logged the trim at DEBUG level. Production ran at INFO.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="If rolling back the model doesn&#x27;t change the output, the model isn&#x27;t the variable." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="If rolling back the model doesn&#x27;t change the output, the model isn&#x27;t the variable." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="It logged the trim at DEBUG level. Production ran at INFO." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="It logged the trim at DEBUG level. Production ran at INFO." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
-        <p>The fix took four minutes once they found it: turn the flag off. Scores recovered within the next eval window. The cleanup took longer. The team moved prompt-affecting flags into the same audit trail as deploys, added the active flag set to every trace as span attributes, and taught the alert to group scores by flag variant. A split that clean, 30% bad and 70% fine, would have pointed at the experiment in the first minute.</p>
-        <p>They also wrote down the thing that stung: in an LLM system, the prompt is code, and anyone who can edit it is shipping to production. The experimentation tool had more deploy authority than the deploy pipeline, and nobody had drawn that box on the architecture diagram.</p>
-        <p>The provider ticket was closed with an apology. The model was fine. It was doing exactly what it was told — by someone who wasn't in the incident channel.</p>
+        <p>The team had since moved to a model with a much larger context window. Nobody had removed the trim step, because nobody remembered it was there. Most contracts fit under 32,000 tokens anyway. The long ones, master agreements with schedules, exhibits and amendments, did not. And in long commercial contracts, termination, indemnity, limitation of liability and change-of-control clauses tend to sit in the back half.</p>
+        <p>The model's answer was correct for the text it received. That's what made the failure invisible: there was no hallucination to catch, no low-confidence score, no refusal. A faithful answer about the wrong document.</p>
+        <p>A backfill query found 212 contracts over the budget in eighteen months. Every one was re-reviewed. Eleven had material clauses that the original summary had marked as absent.</p>
+        <p>The fix had three parts. The trim step was deleted. Every response now carries the token count of the source document and the count actually sent, and the UI shows a red banner if they differ. And documents that exceed the budget fail loudly instead of degrading quietly; a person decides whether to chunk them or review them by hand.</p>
+        <p>Truncation is the most polite failure an LLM pipeline can have. It never errors, it never hallucinates, and it never tells you.</p>
+        <p>The model answered the question correctly about the document it was given. It just wasn't given the whole document.</p>
         <div class="pq">
-          <div class="pq-txt">“The model was fine. It was doing exactly what it was told — by someone who wasn't in the incident channel.”</div>
+          <div class="pq-txt">“The model answered the question correctly about the document it was given. It just wasn't given the whole document.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="The model was fine. It was doing exactly what it was told — by someone who wasn&#x27;t in the incident channel." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="The model was fine. It was doing exactly what it was told — by someone who wasn&#x27;t in the incident channel." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="The model answered the question correctly about the document it was given. It just wasn&#x27;t given the whole document." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="The model answered the question correctly about the document it was given. It just wasn&#x27;t given the whole document." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
       </div>
@@ -182,7 +184,7 @@
   </main>
 
   <footer>
-    <p>Composite dispatch based on documented prompt-configuration and feature-flag false-positive patterns. No specific company incident referenced.</p>
+    <p>Composite dispatch based on documented context-window truncation failures in document-review pipelines. No specific company incident referenced.</p>
     <p style="margin-top:.5rem"><a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a></p>
   </footer>
 
@@ -195,7 +197,7 @@
     });
 
     /* interactive moment: flip every row from what the dashboard said to what was true */
-    const ROWS=[{"label": "Model version", "before": ["support-v4.1", "dim"], "after": ["support-v4.1 (unchanged)", "ok"]}, {"label": "Answer completeness (judge)", "before": ["0.71 ▼ ALERT", "bad"], "after": ["0.71 ▼ ALERT", "bad"]}, {"label": "Suspected cause", "before": ["model regression", "bad"], "after": ["system prompt variant", "warn"]}, {"label": "Flag: concise_answers_v2", "before": ["not in dashboard", "dim"], "after": ["ON · 30% · set by growth team", "bad"]}, {"label": "Rollback effect", "before": ["pending", "dim"], "after": ["none — wrong layer", "bad"]}];
+    const ROWS=[{"label": "Document", "before": ["MSA_Vendor_Final.pdf · 58 pages", "ok"], "after": ["MSA_Vendor_Final.pdf · 58 pages", "ok"]}, {"label": "Status", "before": ["200 OK · reviewed", "ok"], "after": ["200 OK · reviewed", "ok"]}, {"label": "Termination for convenience", "before": ["None found", "ok"], "after": ["None found (page 47 not sent)", "bad"]}, {"label": "Tokens in document", "before": ["(not shown)", "dim"], "after": ["46,900", "warn"]}, {"label": "Tokens sent to model", "before": ["(not shown)", "dim"], "after": ["32,000 · pages 1–41", "bad"]}];
     const im=document.getElementById('im');
     function setState(after){
       ROWS.forEach((r,i)=>{
@@ -212,8 +214,8 @@
     document.getElementById('im-rst').addEventListener('click',()=>setState(false));
 
     /* share */
-    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-model-was-fine.html';
-    const ART_TITLE="The model was fine";
+    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-contract-ended-at-page-41.html';
+    const ART_TITLE="The Contract Ended at Page 41";
     document.querySelectorAll('.shr').forEach(b=>b.addEventListener('click',()=>{
       const u=b.dataset.net==='x'
         ?'https://twitter.com/intent/tweet?text='+encodeURIComponent('"'+b.dataset.quote+'" — '+ART_TITLE+' '+ART_URL)
