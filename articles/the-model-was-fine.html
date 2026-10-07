@@ -194,6 +194,7 @@
       pr.style.width=(max>0?Math.min(h.scrollTop/max*100,100):0)+'%';
     });
 
+    
     /* interactive moment: flip every row from what the dashboard said to what was true */
     const ROWS=[{"label": "Model version", "before": ["support-v4.1", "dim"], "after": ["support-v4.1 (unchanged)", "ok"]}, {"label": "Answer completeness (judge)", "before": ["0.71 ▼ ALERT", "bad"], "after": ["0.71 ▼ ALERT", "bad"]}, {"label": "Suspected cause", "before": ["model regression", "bad"], "after": ["system prompt variant", "warn"]}, {"label": "Flag: concise_answers_v2", "before": ["not in dashboard", "dim"], "after": ["ON · 30% · set by growth team", "bad"]}, {"label": "Rollback effect", "before": ["pending", "dim"], "after": ["none — wrong layer", "bad"]}];
     const im=document.getElementById('im');
@@ -210,6 +211,7 @@
     }
     document.getElementById('im-go').addEventListener('click',()=>setState(true));
     document.getElementById('im-rst').addEventListener('click',()=>setState(false));
+
 
     /* share */
     const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-model-was-fine.html';

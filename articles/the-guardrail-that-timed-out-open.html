@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Trace That Kept Everything — AI Ops Field Notes</title>
-  <meta name="description" content="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.">
-  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html">
+  <title>The Guardrail That Timed Out Open — AI Ops Field Notes</title>
+  <meta name="description" content="A safety check that times out open is a safety check with a latency SLO and no safety SLO.">
+  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-guardrail-that-timed-out-open.html">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="AI Ops Field Notes">
-  <meta property="og:title" content="The Trace That Kept Everything">
-  <meta property="og:description" content="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.">
-  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html">
-  <meta property="article:published_time" content="2026-08-04">
+  <meta property="og:title" content="The Guardrail That Timed Out Open">
+  <meta property="og:description" content="A safety check that times out open is a safety check with a latency SLO and no safety SLO.">
+  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-guardrail-that-timed-out-open.html">
+  <meta property="article:published_time" content="2026-07-28">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="The Trace That Kept Everything">
-  <meta name="twitter:description" content="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The Trace That Kept Everything", "description": "You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.", "datePublished": "2026-08-04", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
+  <meta name="twitter:title" content="The Guardrail That Timed Out Open">
+  <meta name="twitter:description" content="A safety check that times out open is a safety check with a latency SLO and no safety SLO.">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The Guardrail That Timed Out Open", "description": "A safety check that times out open is a safety check with a latency SLO and no safety SLO.", "datePublished": "2026-07-28", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-guardrail-that-timed-out-open.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
@@ -121,61 +121,56 @@
 
   <main>
     <article>
-      <h1 class="hero-title">The Trace That Kept Everything</h1>
-      <div class="hero-meta">2026-08-04 · dispatch</div>
+      <h1 class="hero-title">The Guardrail That Timed Out Open</h1>
+      <div class="hero-meta">2026-07-28 · dispatch</div>
 
       <div class="dispatch-body">
-        <p>The finding came from a privacy auditor, not an alert. She was walking the data map for the benefits assistant, the chatbot that helped employees with insurance claims, and asked a simple question about the tracing vendor listed under “observability”: what fields do we send them?</p>
-        <p>Nobody in the room knew. The engineering lead said “latency and token counts, mostly.” The platform engineer opened the vendor's UI to check. The first span he clicked on contained a full Social Security number.</p>
-        <p>The team had done the work on logging. A redaction filter on the application logger matched SSNs, dates of birth, policy numbers and bank details, and replaced them before anything was written. It had tests. It had been reviewed by security. The logs were clean, and the team had reasonably concluded that the system was clean.</p>
-        <p>The tracing SDK didn't go through the logger.</p>
-        <p>That sentence took the team about twenty minutes to understand and most of the next quarter to clean up.</p>
-        <div class="im" id="im" role="region" aria-label="Redaction coverage simulation">
-          <div class="im-cap">One request, two copies</div>
+        <p>The trust and safety lead flagged it on Monday, and she flagged it because the numbers were too good. Saturday night was the companion app's busiest window and usually its worst for policy violations. This Saturday, output moderation had caught zero violations between 20:00 and 22:00. Not fewer. Zero.</p>
+        <p>Then a user's screenshot reached the support inbox. The app's character had produced a reply that should never have passed moderation, timestamped 21:14 on Saturday.</p>
+        <p>The on-call engineer pulled the moderation logs for that window. There were far fewer log lines than there should have been. About a third of the responses in those two hours had no moderation result at all.</p>
+        <p>Every response from the model went through an output moderation call to a third-party classifier before reaching the user. The integration had a timeout of 800 milliseconds, set by the team that owned the chat latency SLO. On timeout, the code logged a debug line and sent the response anyway. The comment above that branch said <code># don't block chat on moderation hiccups</code>.</p>
+        <div class="im" id="im" role="region" aria-label="Moderation timeout simulation">
+          <div class="im-cap">Output moderation · Saturday 20:00–22:00</div>
           <div aria-live="polite">
           <div class="im-row">
-            <div class="im-l">App log: prompt</div>
-            <div class="im-r ok" id="r0">SSN [REDACTED], DOB [REDACTED]</div>
+            <div class="im-l">Chat p95 latency</div>
+            <div class="im-r ok" id="r0">1.9s ✓ within SLO</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Redaction filter</div>
-            <div class="im-r ok" id="r1">active ✓</div>
+            <div class="im-l">Moderation violations</div>
+            <div class="im-r ok" id="r1">0 ▼ (great night)</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Trace span: llm.input</div>
-            <div class="im-r dim" id="r2">(not inspected)</div>
+            <div class="im-l">Moderation vendor p95</div>
+            <div class="im-r dim" id="r2">not on dashboard</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Trace retention</div>
-            <div class="im-r dim" id="r3">(not on data map)</div>
-          </div>
-          <div class="im-row">
-            <div class="im-l">Spans affected</div>
-            <div class="im-r dim" id="r4">0 known</div>
+            <div class="im-l">Responses sent unchecked</div>
+            <div class="im-r dim" id="r3">not counted</div>
           </div>
           </div>
-          <div class="im-note" id="im-note">⚠ The redaction filter ran on the logging handler. The tracing SDK captured llm.input from the client call, upstream of it, and shipped it to a vendor with 400-day retention.</div>
-          <button class="im-btn" id="im-go" type="button">Open the trace span</button>
+          <div class="im-note" id="im-note">⚠ Moderation had an 800 ms timeout, and on timeout the response went out unchecked. Vendor p95 rose to 1.2 s. Violations “dropped” because a third of responses were never checked.</div>
+          <button class="im-btn" id="im-go" type="button">Count the skipped checks</button>
           <button class="im-btn" id="im-rst" type="button" style="display:none">Reset</button>
         </div>
-        <p>It had been added seven months earlier, when the team wanted per-step latency for their retrieval pipeline. The SDK's auto-instrumentation wrapped the LLM client and captured the full prompt and completion as span attributes. That is its default, and it is very useful for debugging. It captured them at the client call, upstream of the logging handler, so the redaction filter never saw them. Every prompt a user typed, including the ones where they pasted a claim form, went to the vendor verbatim.</p>
+        <p>On Saturday evening, the moderation vendor had its own traffic spike. Its p95 latency rose from 300 milliseconds to 1.2 seconds for about two hours. Roughly 34% of moderation calls timed out. Each of those responses went straight to the user, unchecked. About 58,000 of them.</p>
+        <p>The chat latency dashboard stayed green the whole time, because the timeout protected it. The moderation dashboard showed a beautiful night, because it only counted violations in responses it had actually checked. Nothing anywhere counted the checks that never happened.</p>
         <div class="pq">
-          <div class="pq-txt">“The logs were clean, and the team had reasonably concluded that the system was clean.”</div>
+          <div class="pq-txt">“Nothing anywhere counted the checks that never happened.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="The logs were clean, and the team had reasonably concluded that the system was clean." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="The logs were clean, and the team had reasonably concluded that the system was clean." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="Nothing anywhere counted the checks that never happened." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="Nothing anywhere counted the checks that never happened." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
-        <p>The vendor stored spans for 400 days, in a region the company's data processing agreement didn't cover. Rough count: 2.3 million spans with user content, an unknown fraction carrying identifiers. No breach in the attacker sense, but the company now had regulated health and identity data sitting in a system it had never assessed, under a retention policy it had never agreed to.</p>
-        <p>The cleanup took six weeks: a deletion request to the vendor, a written attestation back, legal review of notification obligations, and a re-run of the data protection impact assessment with tracing in scope this time.</p>
-        <p>The engineering fix was smaller and more pointed. Content capture is now off by default in the tracing config, enforced by a CI check that fails the build if it's enabled. Where engineers need prompt content to debug, it passes through the same redaction function as the logs, at the SDK's span processor, before export. The data map now lists every exporter in the process, not every vendor in the contract.</p>
-        <p>Observability tools are built to capture everything because that's what makes them useful. In an LLM system, everything includes whatever the user typed.</p>
-        <p>You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.</p>
+        <p>The team had made a trade-off without writing it down. Latency was protected by an SLO, an alert and a dashboard. Safety coverage had none of those. When the two collided, the code chose latency, every time, silently.</p>
+        <p>The fixes put that trade-off back in plain view. A moderation timeout now fails closed: the user sees a short “one moment” message, and the system retries moderation once before sending or replacing the response. The timeout is owned jointly by the latency and safety teams. Moderation coverage, the share of responses that received a verdict, is now a metric with its own SLO of 99.9%, and it pages when it drops. And the moderation vendor's latency is on the main dashboard, because a dependency that can switch off a safety control needs to be watched like one.</p>
+        <p>Re-running the 58,000 unchecked responses through moderation found 212 violations, most of them minor. The trust and safety lead's instinct, that zero was the wrong number, was the only detector that worked.</p>
+        <p>A safety check that times out open is a safety check with a latency SLO and no safety SLO.</p>
         <div class="pq">
-          <div class="pq-txt">“You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.”</div>
+          <div class="pq-txt">“A safety check that times out open is a safety check with a latency SLO and no safety SLO.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="A safety check that times out open is a safety check with a latency SLO and no safety SLO." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="A safety check that times out open is a safety check with a latency SLO and no safety SLO." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
       </div>
@@ -183,7 +178,7 @@
   </main>
 
   <footer>
-    <p>Composite dispatch based on documented PII exposure through LLM tracing and observability pipelines. No specific company incident referenced.</p>
+    <p>Composite dispatch based on documented fail-open timeout behavior in LLM output moderation. No specific company incident referenced.</p>
     <p style="margin-top:.5rem"><a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a></p>
   </footer>
 
@@ -197,7 +192,7 @@
 
     
     /* interactive moment: flip every row from what the dashboard said to what was true */
-    const ROWS=[{"label": "App log: prompt", "before": ["SSN [REDACTED], DOB [REDACTED]", "ok"], "after": ["SSN [REDACTED], DOB [REDACTED]", "ok"]}, {"label": "Redaction filter", "before": ["active ✓", "ok"], "after": ["active ✓ (logs only)", "warn"]}, {"label": "Trace span: llm.input", "before": ["(not inspected)", "dim"], "after": ["SSN 5██-██-1847, DOB 1979-03-██", "bad"]}, {"label": "Trace retention", "before": ["(not on data map)", "dim"], "after": ["400 days · third-party region", "bad"]}, {"label": "Spans affected", "before": ["0 known", "dim"], "after": ["~2.3M over 7 months", "bad"]}];
+    const ROWS=[{"label": "Chat p95 latency", "before": ["1.9s ✓ within SLO", "ok"], "after": ["1.9s ✓ within SLO", "ok"]}, {"label": "Moderation violations", "before": ["0 ▼ (great night)", "ok"], "after": ["0 found · 34% never checked", "bad"]}, {"label": "Moderation vendor p95", "before": ["not on dashboard", "dim"], "after": ["1.2s > 800ms timeout", "bad"]}, {"label": "Responses sent unchecked", "before": ["not counted", "dim"], "after": ["~58,000", "bad"]}];
     const im=document.getElementById('im');
     function setState(after){
       ROWS.forEach((r,i)=>{
@@ -215,8 +210,8 @@
 
 
     /* share */
-    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html';
-    const ART_TITLE="The Trace That Kept Everything";
+    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-guardrail-that-timed-out-open.html';
+    const ART_TITLE="The Guardrail That Timed Out Open";
     document.querySelectorAll('.shr').forEach(b=>b.addEventListener('click',()=>{
       const u=b.dataset.net==='x'
         ?'https://twitter.com/intent/tweet?text='+encodeURIComponent('"'+b.dataset.quote+'" — '+ART_TITLE+' '+ART_URL)

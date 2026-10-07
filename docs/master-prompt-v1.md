@@ -56,9 +56,9 @@ Before writing, decide on:
   - "When you build agentic loops, never let an LLM decide when to stop trying."
 - **The interactive moment:** A small simulation the reader triggers that makes the mechanism visible in under 10 seconds.
 
-Do not reuse a topic that overlaps strongly with `{{EXISTING_SLUGS}}`. The published catalog already covers 200-OK semantic failures, green dashboards over schema drift, floating model aliases, silent RAG dependency outages, unbounded and agentic retry loops, runaway agent cost, embedding-drift false positives, feature-flag false positives, rollback/embedding-dimension mismatch, indirect prompt injection reaching a payments tool, PII leaking through tracing, silent context-window truncation, silent model-fallback degradation, stale semantic caches, and fail-open structured-output parsing. Find a **new** failure mode, or an angle on a covered one that is clearly distinct.
+Do not reuse a topic that overlaps strongly with `{{EXISTING_SLUGS}}`. The published catalog already covers 200-OK semantic failures, green dashboards over schema drift, floating model aliases, silent RAG dependency outages, unbounded and agentic retry loops, runaway agent cost, embedding-drift false positives, feature-flag false positives, rollback/embedding-dimension mismatch, indirect prompt injection reaching a payments tool, PII leaking through tracing, silent context-window truncation, silent model-fallback degradation, stale semantic caches, fail-open structured-output parsing, multilingual guardrail false negatives, eval contamination, LLM-as-judge drift, tokenizer-based context overflow, tool-schema drift, multi-agent deadlock, streaming truncation, timezone grounding in prompts, region failover breaking data residency, moderation timeouts failing open, agent memory turning one-off instructions into policy, and tool-permission sprawl. Find a **new** failure mode, or an angle on a covered one that is clearly distinct.
 
-Under-covered territory to prefer: guardrail false negatives, eval-set contamination, LLM-as-judge drift, tokenizer mismatches, tool-schema drift, multi-agent deadlocks, streaming partial-response corruption, timezone or locale bugs in prompts, provider region failover, batch-job silent truncation, guardrail latency budgets causing timeouts, memory poisoning in long-running agents, and MCP/tool-server permission sprawl.
+Under-covered territory to prefer: batch-job silent truncation, embedding-model upgrades without re-indexing the corpus, retrieval poisoning through user-generated content, A/B test leakage between prompt variants, prompt-version skew between deploy regions, PII in fine-tuning data, evaluation on synthetic data that doesn't match production, agent-to-agent prompt injection, cost attribution failures across tenants, and on-device model version skew.
 
 ## STEP 2: Write the dispatch
 
@@ -236,5 +236,6 @@ Return exactly three fenced blocks, in this order, and nothing else:
 
 ## Changelog
 
+- **v1.2 (2026-10-07):** Updated the covered-topics list after twelve more dispatches and refreshed the under-covered list.
 - **v1.1 (2026-10-06):** Updated the covered-topics list after generating six new dispatches, and pointed the publishing checklist at `scripts/validate.py`.
 - **v1 (2026-10-06):** Initial master prompt, derived from the 11 published dispatches. It standardizes on the IBM Plex Serif/Mono dark template used by `two-incidents-one-revert.html` and `green-alerts-silent-rag.html`.

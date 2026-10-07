@@ -9,6 +9,25 @@
   },
   "articles": [
     {
+      "id": "1006",
+      "slug": "the-tool-nobody-remembered-granting",
+      "title": "The Tool Nobody Remembered Granting",
+      "hook": "Every tool you connect is a permission you granted to whoever is typing. Including the model.",
+      "path": "articles/the-tool-nobody-remembered-granting.html",
+      "date": "2026-10-06",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "tool-permissions",
+        "least-privilege",
+        "agentic-failure"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2026-08-25 to 2026-10-06",
+      "source_type": "composite"
+    },
+    {
       "id": "0929",
       "slug": "the-parser-said-low-risk",
       "title": "The Parser Said Low Risk",
@@ -66,6 +85,25 @@
       "source_type": "composite"
     },
     {
+      "id": "0826",
+      "slug": "the-note-it-wrote-to-itself",
+      "title": "The Note It Wrote to Itself",
+      "hook": "An agent with memory doesn't just remember what you said. It remembers what it thought you meant, forever.",
+      "path": "articles/the-note-it-wrote-to-itself.html",
+      "date": "2026-08-26",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "agent-memory",
+        "policy-bypass",
+        "agentic-failure"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2026-07-14 to 2026-08-26",
+      "source_type": "composite"
+    },
+    {
       "id": "0819",
       "slug": "the-contract-ended-at-page-41",
       "title": "The Contract Ended at Page 41",
@@ -101,6 +139,25 @@
       "reading_time_minutes": 3,
       "pinned": false,
       "research_window": "2026-06-23 to 2026-08-04",
+      "source_type": "composite"
+    },
+    {
+      "id": "0728",
+      "slug": "the-guardrail-that-timed-out-open",
+      "title": "The Guardrail That Timed Out Open",
+      "hook": "A safety check that times out open is a safety check with a latency SLO and no safety SLO.",
+      "path": "articles/the-guardrail-that-timed-out-open.html",
+      "date": "2026-07-28",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "guardrail-bypass",
+        "fail-open",
+        "latency"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2026-06-16 to 2026-07-28",
       "source_type": "composite"
     },
     {
@@ -155,7 +212,7 @@
         "agentic-failure",
         "cost-spike"
       ],
-      "reading_time_minutes": 3,
+      "reading_time_minutes": 2,
       "pinned": false,
       "research_window": "2026-04-08 to 2026-05-20",
       "source_type": "composite"
@@ -174,9 +231,28 @@
         "retry-loop",
         "agentic-failure"
       ],
-      "reading_time_minutes": 3,
+      "reading_time_minutes": 2,
       "pinned": false,
       "research_window": "2026-04-28 to 2026-05-12",
+      "source_type": "composite"
+    },
+    {
+      "id": "0407",
+      "slug": "the-failover-that-crossed-the-ocean",
+      "title": "The Failover That Crossed the Ocean",
+      "hook": "Availability and compliance are both requirements. Your failover only knew about one of them.",
+      "path": "articles/the-failover-that-crossed-the-ocean.html",
+      "date": "2026-04-07",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "model-fallback",
+        "data-residency",
+        "compliance"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2026-02-24 to 2026-04-07",
       "source_type": "composite"
     },
     {
@@ -193,7 +269,7 @@
         "circuit-breakers",
         "agentic-failure"
       ],
-      "reading_time_minutes": 4,
+      "reading_time_minutes": 3,
       "pinned": false,
       "research_window": "2026-02-11 to 2026-03-18",
       "source_type": "single-source-anonymized"
@@ -212,7 +288,7 @@
         "json-schema",
         "model-drift"
       ],
-      "reading_time_minutes": 3,
+      "reading_time_minutes": 2,
       "pinned": false,
       "research_window": "2026-01-29 to 2026-03-12",
       "source_type": "composite"
@@ -231,7 +307,7 @@
         "data-drift",
         "embedding-monitoring"
       ],
-      "reading_time_minutes": 3,
+      "reading_time_minutes": 2,
       "pinned": false,
       "research_window": "2026-01-13 to 2026-02-24",
       "source_type": "composite"
@@ -250,9 +326,161 @@
         "json-schema",
         "api-reliability"
       ],
-      "reading_time_minutes": 3,
+      "reading_time_minutes": 2,
       "pinned": false,
       "research_window": "2025-12-03 to 2026-01-14",
+      "source_type": "composite"
+    },
+    {
+      "id": "1209",
+      "slug": "the-assistant-lived-in-utc",
+      "title": "The Assistant Lived in UTC",
+      "hook": "The model didn't get the date wrong. You told it the wrong date, very confidently.",
+      "path": "articles/the-assistant-lived-in-utc.html",
+      "date": "2025-12-09",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "prompt-bug",
+        "timezone",
+        "silent-failure"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2025-10-28 to 2025-12-09",
+      "source_type": "composite"
+    },
+    {
+      "id": "1111",
+      "slug": "the-stream-that-lost-its-ending",
+      "title": "The Stream That Lost Its Ending",
+      "hook": "The server finished the answer. The user didn't get it. Only one of those was in your logs.",
+      "path": "articles/the-stream-that-lost-its-ending.html",
+      "date": "2025-11-11",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "streaming",
+        "partial-response",
+        "silent-failure"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2025-09-30 to 2025-11-11",
+      "source_type": "composite"
+    },
+    {
+      "id": "1014",
+      "slug": "two-agents-both-waiting",
+      "title": "Two Agents, Both Waiting",
+      "hook": "The quietest agent failure isn't the one burning tokens. It's the one where everyone is politely waiting.",
+      "path": "articles/two-agents-both-waiting.html",
+      "date": "2025-10-14",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "multi-agent",
+        "deadlock",
+        "agentic-failure"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2025-09-02 to 2025-10-14",
+      "source_type": "composite"
+    },
+    {
+      "id": "0915",
+      "slug": "the-field-that-changed-its-name",
+      "title": "The Field That Changed Its Name",
+      "hook": "Your agent's tool definitions are an API client nobody versioned.",
+      "path": "articles/the-field-that-changed-its-name.html",
+      "date": "2025-09-16",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "tool-schema-drift",
+        "api-reliability",
+        "agentic-failure"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2025-08-05 to 2025-09-16",
+      "source_type": "composite"
+    },
+    {
+      "id": "0818",
+      "slug": "the-budget-counted-in-the-wrong-units",
+      "title": "The Budget Counted in the Wrong Units",
+      "hook": "Averages hide languages. Your 0.4% error rate was one customer's 31%.",
+      "path": "articles/the-budget-counted-in-the-wrong-units.html",
+      "date": "2025-08-19",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "tokenizer-mismatch",
+        "silent-failure",
+        "localization"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2025-07-08 to 2025-08-19",
+      "source_type": "composite"
+    },
+    {
+      "id": "0722",
+      "slug": "the-judge-changed-its-mind",
+      "title": "The Judge Changed Its Mind",
+      "hook": "If the baseline's score moves and the baseline didn't change, you're not measuring your model. You're measuring the judge.",
+      "path": "articles/the-judge-changed-its-mind.html",
+      "date": "2025-07-22",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "llm-judge",
+        "eval-drift",
+        "model-drift"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2025-06-10 to 2025-07-22",
+      "source_type": "composite"
+    },
+    {
+      "id": "0624",
+      "slug": "the-eval-that-had-seen-the-answers",
+      "title": "The Eval That Had Seen the Answers",
+      "hook": "An eval that overlaps your training data isn't measuring the model. It's measuring its memory.",
+      "path": "articles/the-eval-that-had-seen-the-answers.html",
+      "date": "2025-06-24",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "eval-contamination",
+        "fine-tuning",
+        "false-positive"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2025-05-13 to 2025-06-24",
+      "source_type": "composite"
+    },
+    {
+      "id": "0527",
+      "slug": "the-guardrail-spoke-only-english",
+      "title": "The Guardrail Spoke Only English",
+      "hook": "A guardrail's block rate tells you how many attacks it recognized. It says nothing about how many it missed.",
+      "path": "articles/the-guardrail-spoke-only-english.html",
+      "date": "2025-05-27",
+      "status": "published",
+      "format": "dispatch",
+      "tags": [
+        "guardrail-bypass",
+        "prompt-injection",
+        "false-negative"
+      ],
+      "reading_time_minutes": 3,
+      "pinned": false,
+      "research_window": "2025-04-15 to 2025-05-27",
       "source_type": "composite"
     },
     {
@@ -308,10 +536,10 @@
         "semantic-canary",
         "caching-failure"
       ],
-      "reading_time_minutes": 6,
+      "reading_time_minutes": 3,
       "pinned": false,
       "research_window": "2024-12-08 to 2025-01-05",
-      "source_type": "public-postmortem"
+      "source_type": "composite"
     },
     {
       "id": "1203",

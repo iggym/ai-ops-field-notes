@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Trace That Kept Everything — AI Ops Field Notes</title>
-  <meta name="description" content="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.">
-  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html">
+  <title>The Failover That Crossed the Ocean — AI Ops Field Notes</title>
+  <meta name="description" content="Availability and compliance are both requirements. Your failover only knew about one of them.">
+  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-failover-that-crossed-the-ocean.html">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="AI Ops Field Notes">
-  <meta property="og:title" content="The Trace That Kept Everything">
-  <meta property="og:description" content="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.">
-  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html">
-  <meta property="article:published_time" content="2026-08-04">
+  <meta property="og:title" content="The Failover That Crossed the Ocean">
+  <meta property="og:description" content="Availability and compliance are both requirements. Your failover only knew about one of them.">
+  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-failover-that-crossed-the-ocean.html">
+  <meta property="article:published_time" content="2026-04-07">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="The Trace That Kept Everything">
-  <meta name="twitter:description" content="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The Trace That Kept Everything", "description": "You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.", "datePublished": "2026-08-04", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
+  <meta name="twitter:title" content="The Failover That Crossed the Ocean">
+  <meta name="twitter:description" content="Availability and compliance are both requirements. Your failover only knew about one of them.">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The Failover That Crossed the Ocean", "description": "Availability and compliance are both requirements. Your failover only knew about one of them.", "datePublished": "2026-04-07", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-failover-that-crossed-the-ocean.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
@@ -121,61 +121,54 @@
 
   <main>
     <article>
-      <h1 class="hero-title">The Trace That Kept Everything</h1>
-      <div class="hero-meta">2026-08-04 · dispatch</div>
+      <h1 class="hero-title">The Failover That Crossed the Ocean</h1>
+      <div class="hero-meta">2026-04-07 · dispatch</div>
 
       <div class="dispatch-body">
-        <p>The finding came from a privacy auditor, not an alert. She was walking the data map for the benefits assistant, the chatbot that helped employees with insurance claims, and asked a simple question about the tracing vendor listed under “observability”: what fields do we send them?</p>
-        <p>Nobody in the room knew. The engineering lead said “latency and token counts, mostly.” The platform engineer opened the vendor's UI to check. The first span he clicked on contained a full Social Security number.</p>
-        <p>The team had done the work on logging. A redaction filter on the application logger matched SSNs, dates of birth, policy numbers and bank details, and replaced them before anything was written. It had tests. It had been reviewed by security. The logs were clean, and the team had reasonably concluded that the system was clean.</p>
-        <p>The tracing SDK didn't go through the logger.</p>
-        <p>That sentence took the team about twenty minutes to understand and most of the next quarter to clean up.</p>
-        <div class="im" id="im" role="region" aria-label="Redaction coverage simulation">
-          <div class="im-cap">One request, two copies</div>
+        <p>The email came from a customer's data protection officer at 9:12 on a Wednesday morning. She had noticed a response header in her team's API logs, <code>x-served-region: us-east</code>, on requests from the previous afternoon. Her contract said the company's AI features processed EU personal data in the EU. She asked, politely, for an explanation by Friday. The platform team didn't have one ready.</p>
+        <p>The platform team checked the incident log for Tuesday. There was no incident. Availability had been 100%. The only blip on the dashboards was a p95 latency bump of about 180 milliseconds that lasted most of the afternoon and resolved itself.</p>
+        <p>The latency bump was the incident.</p>
+        <p>The company ran its LLM traffic through an internal gateway that routed each request to a model endpoint. For EU tenants, the primary was the provider's EU region. When that endpoint started returning elevated errors at 13:00, the gateway's health check marked it degraded and did what it was built to do: fail over to the next healthy endpoint on the list.</p>
+        <div class="im" id="im" role="region" aria-label="Region failover simulation">
+          <div class="im-cap">LLM gateway · EU tenant traffic · 13:00–18:10 CET</div>
           <div aria-live="polite">
           <div class="im-row">
-            <div class="im-l">App log: prompt</div>
-            <div class="im-r ok" id="r0">SSN [REDACTED], DOB [REDACTED]</div>
+            <div class="im-l">Availability</div>
+            <div class="im-r ok" id="r0">100% ✓</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Redaction filter</div>
-            <div class="im-r ok" id="r1">active ✓</div>
+            <div class="im-l">p95 latency</div>
+            <div class="im-r warn" id="r1">+180ms (minor)</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Trace span: llm.input</div>
-            <div class="im-r dim" id="r2">(not inspected)</div>
+            <div class="im-l">Serving region</div>
+            <div class="im-r dim" id="r2">not on dashboard</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Trace retention</div>
-            <div class="im-r dim" id="r3">(not on data map)</div>
-          </div>
-          <div class="im-row">
-            <div class="im-l">Spans affected</div>
-            <div class="im-r dim" id="r4">0 known</div>
+            <div class="im-l">EU requests processed outside EU</div>
+            <div class="im-r dim" id="r3">0 known</div>
           </div>
           </div>
-          <div class="im-note" id="im-note">⚠ The redaction filter ran on the logging handler. The tracing SDK captured llm.input from the client call, upstream of it, and shipped it to a vendor with 400-day retention.</div>
-          <button class="im-btn" id="im-go" type="button">Open the trace span</button>
+          <div class="im-note" id="im-note">⚠ The EU endpoint degraded. The gateway&#x27;s failover list was ordered by latency, not jurisdiction, and the next healthy region was in the US.</div>
+          <button class="im-btn" id="im-go" type="button">Show the serving region</button>
           <button class="im-btn" id="im-rst" type="button" style="display:none">Reset</button>
         </div>
-        <p>It had been added seven months earlier, when the team wanted per-step latency for their retrieval pipeline. The SDK's auto-instrumentation wrapped the LLM client and captured the full prompt and completion as span attributes. That is its default, and it is very useful for debugging. It captured them at the client call, upstream of the logging handler, so the redaction filter never saw them. Every prompt a user typed, including the ones where they pasted a claim form, went to the vendor verbatim.</p>
+        <p>The failover list had been written two years earlier, when the gateway served only US customers. It was ordered by latency. When the EU tenants were added, someone put the EU endpoint at the top of the list for those tenants and left the rest of the list alone. Second on the list was <code>us-east</code>. For five hours and ten minutes, about 412,000 requests from EU tenants, carrying support tickets, contract text and employee names, were processed in the United States.</p>
         <div class="pq">
-          <div class="pq-txt">“The logs were clean, and the team had reasonably concluded that the system was clean.”</div>
+          <div class="pq-txt">“The failover list had been written two years earlier, when the gateway served only US customers.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="The logs were clean, and the team had reasonably concluded that the system was clean." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="The logs were clean, and the team had reasonably concluded that the system was clean." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="The failover list had been written two years earlier, when the gateway served only US customers." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="The failover list had been written two years earlier, when the gateway served only US customers." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
-        <p>The vendor stored spans for 400 days, in a region the company's data processing agreement didn't cover. Rough count: 2.3 million spans with user content, an unknown fraction carrying identifiers. No breach in the attacker sense, but the company now had regulated health and identity data sitting in a system it had never assessed, under a retention policy it had never agreed to.</p>
-        <p>The cleanup took six weeks: a deletion request to the vendor, a written attestation back, legal review of notification obligations, and a re-run of the data protection impact assessment with tracing in scope this time.</p>
-        <p>The engineering fix was smaller and more pointed. Content capture is now off by default in the tracing config, enforced by a CI check that fails the build if it's enabled. Where engineers need prompt content to debug, it passes through the same redaction function as the logs, at the SDK's span processor, before export. The data map now lists every exporter in the process, not every vendor in the contract.</p>
-        <p>Observability tools are built to capture everything because that's what makes them useful. In an LLM system, everything includes whatever the user typed.</p>
-        <p>You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.</p>
+        <p>Nothing broke. That was the problem. The gateway's job was availability, and by that measure the afternoon had been a success. Data residency wasn't a constraint the router knew about. It existed in contracts, in a compliance spreadsheet and in the sales team's answers to security questionnaires. It didn't exist in the routing config. The router had done its job perfectly. Nobody had told it the job included staying in Europe.</p>
+        <p>The legal review took three weeks and involved notifications to eleven customers. The engineering fix took two days. Residency is now a hard constraint on every route: EU tenant traffic can only be served by EU endpoints, and if none is healthy, the gateway degrades gracefully, queuing non-urgent requests and returning a clear “temporarily unavailable” for interactive ones, instead of failing over across a border. The serving region is a dimension on every dashboard. And a nightly check samples gateway logs for any request whose serving region doesn't match its tenant's residency policy. It has found nothing since. It is the alert the team most wants to stay quiet.</p>
+        <p>Availability and compliance are both requirements. Your failover only knew about one of them.</p>
         <div class="pq">
-          <div class="pq-txt">“You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.”</div>
+          <div class="pq-txt">“Availability and compliance are both requirements. Your failover only knew about one of them.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="Availability and compliance are both requirements. Your failover only knew about one of them." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="Availability and compliance are both requirements. Your failover only knew about one of them." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
       </div>
@@ -183,7 +176,7 @@
   </main>
 
   <footer>
-    <p>Composite dispatch based on documented PII exposure through LLM tracing and observability pipelines. No specific company incident referenced.</p>
+    <p>Composite dispatch based on documented LLM gateway failover and data-residency failures. No specific company incident referenced.</p>
     <p style="margin-top:.5rem"><a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a></p>
   </footer>
 
@@ -197,7 +190,7 @@
 
     
     /* interactive moment: flip every row from what the dashboard said to what was true */
-    const ROWS=[{"label": "App log: prompt", "before": ["SSN [REDACTED], DOB [REDACTED]", "ok"], "after": ["SSN [REDACTED], DOB [REDACTED]", "ok"]}, {"label": "Redaction filter", "before": ["active ✓", "ok"], "after": ["active ✓ (logs only)", "warn"]}, {"label": "Trace span: llm.input", "before": ["(not inspected)", "dim"], "after": ["SSN 5██-██-1847, DOB 1979-03-██", "bad"]}, {"label": "Trace retention", "before": ["(not on data map)", "dim"], "after": ["400 days · third-party region", "bad"]}, {"label": "Spans affected", "before": ["0 known", "dim"], "after": ["~2.3M over 7 months", "bad"]}];
+    const ROWS=[{"label": "Availability", "before": ["100% ✓", "ok"], "after": ["100% ✓", "ok"]}, {"label": "p95 latency", "before": ["+180ms (minor)", "warn"], "after": ["+180ms (transatlantic)", "warn"]}, {"label": "Serving region", "before": ["not on dashboard", "dim"], "after": ["us-east · 5h 10m", "bad"]}, {"label": "EU requests processed outside EU", "before": ["0 known", "dim"], "after": ["~412,000", "bad"]}];
     const im=document.getElementById('im');
     function setState(after){
       ROWS.forEach((r,i)=>{
@@ -215,8 +208,8 @@
 
 
     /* share */
-    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html';
-    const ART_TITLE="The Trace That Kept Everything";
+    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-failover-that-crossed-the-ocean.html';
+    const ART_TITLE="The Failover That Crossed the Ocean";
     document.querySelectorAll('.shr').forEach(b=>b.addEventListener('click',()=>{
       const u=b.dataset.net==='x'
         ?'https://twitter.com/intent/tweet?text='+encodeURIComponent('"'+b.dataset.quote+'" — '+ART_TITLE+' '+ART_URL)
