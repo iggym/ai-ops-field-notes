@@ -1,317 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Green Dashboard That Lied - AI Ops Field Notes</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #0d1117;
-            --card-bg: #161b22;
-            --border: #30363d;
-            --text: #c9d1d9;
-            --text-heading: #f0f6fc;
-            --text-muted: #8b949e;
-            --accent: #58a6ff;
-            --danger: #f85149;
-            --success: #3fb950;
-            --warning: #d29922;
-            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            --font-mono: 'Fira Code', monospace;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: var(--font-sans);
-            line-height: 1.7;
-            padding-bottom: 60px;
-        }
-
-        #progress {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 3px;
-            background: var(--accent);
-            width: 0%;
-            z-index: 1000;
-            transition: width 0.1s ease;
-        }
-
-        .topbar {
-            position: sticky;
-            top: 0;
-            background: rgba(13, 17, 23, 0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border);
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 900;
-        }
-
-        .topbar a {
-            color: var(--text-heading);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .topbar a:hover {
-            color: var(--accent);
-        }
-
-        .meta-info {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-family: var(--font-mono);
-        }
-
-        .container {
-            max-width: 620px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        header {
-            margin-bottom: 32px;
-        }
-
-        .tag {
-            display: inline-block;
-            background: rgba(88, 166, 255, 0.1);
-            color: var(--accent);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-family: var(--font-mono);
-            margin-bottom: 12px;
-            border: 1px solid rgba(88, 166, 255, 0.2);
-        }
-
-        h1 {
-            color: var(--text-heading);
-            font-size: clamp(1.7rem, 4vw, 2.4rem);
-            line-height: 1.25;
-            letter-spacing: -0.02em;
-            margin-bottom: 12px;
-        }
-
-        .dispatch-date {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-family: var(--font-mono);
-        }
-
-        .content p {
-            margin-bottom: 20px;
-            font-size: 1.05rem;
-        }
-
-        .interactive-container {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            margin: 32px 0;
-        }
-
-        .interactive-title {
-            font-size: 0.85rem;
-            font-family: var(--font-mono);
-            color: var(--text-muted);
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .dashboard-sim {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .metric-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            background: var(--bg);
-            border-radius: 4px;
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-        }
-
-        .status-badge {
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .status-green {
-            background: rgba(63, 185, 80, 0.15);
-            color: var(--success);
-        }
-
-        .status-red {
-            background: rgba(248, 81, 73, 0.15);
-            color: var(--danger);
-        }
-
-        .pull-quote {
-            border-left: 3px solid var(--accent);
-            padding: 12px 0 12px 20px;
-            margin: 28px 0;
-            background: rgba(22, 27, 34, 0.5);
-            border-radius: 0 6px 6px 0;
-        }
-
-        .pull-quote p {
-            font-size: 1.1rem;
-            color: var(--text-heading);
-            font-style: italic;
-            margin-bottom: 12px;
-        }
-
-        .share-buttons {
-            display: flex;
-            gap: 12px;
-        }
-
-        .share-btn {
-            background: var(--border);
-            color: var(--text);
-            border: none;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            text-decoration: none;
-        }
-
-        .share-btn:hover {
-            background: var(--accent);
-            color: #fff;
-        }
-
-        footer {
-            margin-top: 60px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border);
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-align: center;
-        }
-
-        footer a {
-            color: var(--accent);
-            text-decoration: none;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            #progress {
-                transition: none;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Green Dashboard That Lied — AI Ops Field Notes</title>
+  <meta name="description" content="When your primary dependency is a probabilistic black box managed by a third party, a 200 OK status code isn&#x27;t a success signal. It&#x27;s just an acknowledgment that your request arrived.">
+  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-green-dashboard-that-lied.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Ops Field Notes">
+  <meta property="og:title" content="The Green Dashboard That Lied">
+  <meta property="og:description" content="When your primary dependency is a probabilistic black box managed by a third party, a 200 OK status code isn&#x27;t a success signal. It&#x27;s just an acknowledgment that your request arrived.">
+  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-green-dashboard-that-lied.html">
+  <meta property="article:published_time" content="2026-03-12">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="The Green Dashboard That Lied">
+  <meta name="twitter:description" content="When your primary dependency is a probabilistic black box managed by a third party, a 200 OK status code isn&#x27;t a success signal. It&#x27;s just an acknowledgment that your request arrived.">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The Green Dashboard That Lied", "description": "When your primary dependency is a probabilistic black box managed by a third party, a 200 OK status code isn't a success signal. It's just an acknowledgment that your request arrived.", "datePublished": "2026-03-12", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-green-dashboard-that-lied.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#09090b;--surface:#18181b;--text:#e4e4e7;--text-dim:#71717a;
+      --accent:#ef4444;--green:#22c55e;--yellow:#eab308;--border:#27272a;
+      --glass:rgba(9,9,11,0.82);
+    }
+    html{scroll-behavior:smooth}
+    body{
+      font-family:'IBM Plex Serif',Georgia,serif;background:var(--bg);
+      color:var(--text);line-height:1.8;min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+    }
+    #progress{position:fixed;top:0;left:0;height:2px;background:var(--accent);z-index:200;width:0%}
+    #topbar{
+      position:sticky;top:0;z-index:100;
+      backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      background:var(--glass);border-bottom:1px solid var(--border);
+      padding:.6rem 1.5rem;display:flex;align-items:center;justify-content:space-between;
+      font-family:'IBM Plex Mono',monospace;font-size:.78rem;
+    }
+    #topbar a{color:var(--text-dim);text-decoration:none;transition:color .15s}
+    #topbar a:hover{color:var(--text)}
+    .tb-l{display:flex;align-items:center;gap:1.25rem}
+    .tb-r{color:var(--text-dim);font-size:.72rem}
+    .ham{display:none;cursor:pointer;font-size:1.15rem;color:var(--text-dim);background:none;border:none;padding:0}
+    .tb-nav{display:flex;gap:1rem}
+    @media(max-width:600px){
+      .ham{display:inline-block}
+      .tb-nav{display:none}
+      .tb-nav.open{
+        display:flex;flex-direction:column;gap:.5rem;position:absolute;
+        top:100%;left:0;right:0;background:var(--surface);
+        padding:.75rem 1.5rem;border-bottom:1px solid var(--border);
+      }
+    }
+    main{max-width:620px;margin:0 auto;padding:3rem 1.5rem 4rem}
+    .hero-title{font-size:clamp(1.7rem,4vw,2.4rem);font-weight:600;line-height:1.15;margin-bottom:.6rem;letter-spacing:-.01em}
+    .hero-meta{font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--text-dim);margin-bottom:2.5rem}
+    .dispatch-body p{margin-bottom:1.2rem}
+    .dispatch-body code{font-family:'IBM Plex Mono',monospace;font-size:.85em;background:var(--surface);padding:.05rem .3rem;border-radius:3px}
+    .im{
+      background:var(--surface);border:1px solid var(--border);border-radius:6px;
+      padding:1.25rem 1.5rem;margin:2rem -.25rem;
+      font-family:'IBM Plex Mono',monospace;font-size:.78rem;
+    }
+    .im-cap{color:var(--text-dim);font-size:.68rem;margin-bottom:.85rem;text-transform:uppercase;letter-spacing:.08em}
+    .im-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.45rem 0;border-bottom:1px solid var(--border);font-size:.74rem}
+    .im-row:last-of-type{border-bottom:none}
+    .im-l{color:var(--text-dim)}
+    .im-r{font-weight:500;text-align:right;transition:color .25s}
+    .ok{color:var(--green)}
+    .bad{color:var(--accent)}
+    .dim{color:var(--text-dim)}
+    .warn{color:var(--yellow)}
+    .im-note{color:var(--yellow);font-size:.7rem;margin-top:.6rem;line-height:1.5;opacity:0;transition:opacity .35s}
+    .im-note.vis{opacity:1}
+    .im-btn{
+      display:inline-block;margin-top:.85rem;margin-right:.4rem;padding:.35rem .75rem;
+      background:transparent;border:1px solid var(--border);color:var(--text-dim);
+      border-radius:4px;cursor:pointer;font-family:'IBM Plex Mono',monospace;
+      font-size:.7rem;transition:color .15s,border-color .15s;
+    }
+    .im-btn:hover{color:var(--text);border-color:var(--text-dim)}
+    .im-btn:focus-visible,.shr:focus-visible,.ham:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    .pq{border-left:3px solid var(--accent);padding-left:1rem;margin:2rem 0;font-style:italic}
+    .pq-txt{margin-bottom:.4rem}
+    .shr-row{display:flex;gap:.4rem}
+    .shr{
+      display:inline-flex;align-items:center;padding:.2rem .5rem;background:var(--surface);
+      border:1px solid var(--border);color:var(--text-dim);border-radius:3px;cursor:pointer;
+      font-family:'IBM Plex Mono',monospace;font-size:.65rem;transition:color .15s,border-color .15s;
+    }
+    .shr:hover{color:var(--text);border-color:var(--text-dim)}
+    footer{
+      max-width:620px;margin:0 auto;padding:2rem 1.5rem;border-top:1px solid var(--border);
+      font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--text-dim);
+    }
+    footer a{color:var(--text-dim);text-decoration:none}
+    footer a:hover{color:var(--text)}
+    @media(prefers-reduced-motion:reduce){
+      html{scroll-behavior:auto!important}
+      *{transition:none!important;animation:none!important}
+    }
+  </style>
 </head>
 <body>
+  <div id="progress"></div>
 
-    <div id="progress"></div>
-
-    <div class="topbar">
-        <a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a>
-        <div class="meta-info">3 min read</div>
+  <header id="topbar">
+    <div class="tb-l">
+      <a href="https://iggym.github.io/ai-ops-field-notes/">Home</a>
+      <button class="ham" type="button" onclick="document.querySelector('.tb-nav').classList.toggle('open')" aria-label="Toggle menu">☰</button>
+      <nav class="tb-nav">
+        <a href="https://iggym.github.io/ai-ops-field-notes/">Field Notes</a>
+      </nav>
     </div>
+    <div class="tb-r">2 min read</div>
+  </header>
 
-    <div class="container">
-        <header>
-            <span class="tag">DISPATCH #011</span>
-            <h1>The Green Dashboard That Lied</h1>
-            <div class="dispatch-date">MARCH 12, 2026</div>
-        </header>
+  <main>
+    <article>
+      <h1 class="hero-title">The Green Dashboard That Lied</h1>
+      <div class="hero-meta">2026-03-12 · dispatch</div>
 
-        <div class="content">
-            <p>The alerts didn't fire. Datadog was a tranquil sea of green at 03:00 UTC. p99 latency sat neatly at 180 milliseconds, error rates hovered at 0.001%, and the GPU clusters were humming along at optimal load.</p>
-
-            <p>Then the VP of Operations called at 06:15 AM.</p>
-
-            <p>None of the night shift’s discharge summaries had generated billing codes. Four thousand patient charts had passed through the pipeline overnight. Every single chart was marked as successfully processed in the logs. Every single chart had an empty billing array.</p>
-
-            <div class="interactive-container">
-                <div class="interactive-title">Live Telemetry vs Business State</div>
-                <div class="dashboard-sim">
-                    <div class="metric-row">
-                        <span>HTTP Status (200 OK)</span>
-                        <span class="status-badge status-green">99.99%</span>
-                    </div>
-                    <div class="metric-row">
-                        <span>Pipeline Exception Rate</span>
-                        <span class="status-badge status-green">0.00%</span>
-                    </div>
-                    <div class="metric-row">
-                        <span>Extracted Billing Array Length</span>
-                        <span class="status-badge status-red">0 items (Empty)</span>
-                    </div>
-                </div>
-            </div>
-
-            <p>The primary model provider had quietly rolled an update to their structured JSON enforcement engine around 16:00 UTC the previous day. Up until that deploy, requesting <code>structured_analysis</code> returned a flat JSON object with a root key named <code>billing_codes</code>. After the deploy, the provider’s parser began nesting those codes under a newly introduced <code>diagnostics</code> parent key.</p>
-
-            <p>Because the API response still returned HTTP 200 OK, the API client didn't retry. Because the extraction logic used a safe-navigation getter (<code>data.get('billing_codes', [])</code>), the code didn't crash. It simply grabbed the default empty list and moved on. The pipeline faithfully saved thousands of blank billing records to PostgreSQL, stamped the job as completed, and sent a success metric to StatsD.</p>
-
-            <div class="pull-quote">
-                <p>The system worked perfectly according to every system metric configured. It was completely broken according to the business.</p>
-                <div class="share-buttons">
-                    <a class="share-btn" href="https://twitter.com/intent/tweet?text=The%20system%20worked%20perfectly%20according%20to%20every%20system%20metric%20configured.%20It%20was%20completely%20broken%20according%20to%20the%20business.&url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on X</a>
-                    <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on LinkedIn</a>
-                </div>
-            </div>
-
-            <p>It took three hours of frantic debugging to realize the code wasn't failing—it was succeeding at doing nothing. The telemetry tracked execution completion, not payload validity. The team was monitoring the pipe, not what was flowing through it.</p>
-
-            <div class="pull-quote">
-                <p>When your primary dependency is a probabilistic black box managed by a third party, a 200 OK status code isn't a success signal. It's just an acknowledgment that your request arrived.</p>
-                <div class="share-buttons">
-                    <a class="share-btn" href="https://twitter.com/intent/tweet?text=When%20your%20primary%20dependency%20is%20a%20probabilistic%20black%20box%20managed%20by%20a%20third%20party%2C%20a%20200%20OK%20status%20code%20isn%27t%20a%20success%20signal.&url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on X</a>
-                    <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on LinkedIn</a>
-                </div>
-            </div>
-
-            <p>Four lines of runtime validation fixed the immediate issue. The real fix took longer: rewriting every health check to validate schema completeness instead of HTTP status codes.</p>
+      <div class="dispatch-body">
+        <p>The alerts didn't fire. Datadog was a tranquil sea of green at 03:00 UTC. p99 latency sat neatly at 180 milliseconds, error rates hovered at 0.001%, and the GPU clusters were humming along at optimal load.</p>
+        <p>Then the VP of Operations called at 06:15 AM.</p>
+        <p>None of the night shift's discharge summaries had generated billing codes. Four thousand patient charts had passed through the pipeline overnight. Every single chart was marked as successfully processed in the logs. Every single chart had an empty billing array.</p>
+        <div class="im" id="im" role="region" aria-label="Telemetry versus business state simulation">
+          <div class="im-cap">Live telemetry vs. business state · 06:15</div>
+          <div aria-live="polite">
+          <div class="im-row">
+            <div class="im-l">HTTP 200 OK</div>
+            <div class="im-r ok" id="r0">99.99%</div>
+          </div>
+          <div class="im-row">
+            <div class="im-l">Pipeline exception rate</div>
+            <div class="im-r ok" id="r1">0.00%</div>
+          </div>
+          <div class="im-row">
+            <div class="im-l">Jobs completed</div>
+            <div class="im-r ok" id="r2">4,000 / 4,000</div>
+          </div>
+          <div class="im-row">
+            <div class="im-l">Response shape</div>
+            <div class="im-r dim" id="r3">not monitored</div>
+          </div>
+          <div class="im-row">
+            <div class="im-l">Billing codes extracted</div>
+            <div class="im-r dim" id="r4">not monitored</div>
+          </div>
+          </div>
+          <div class="im-note" id="im-note">⚠ The provider nested billing_codes under a new diagnostics key. data.get(&#x27;billing_codes&#x27;, []) returned the default, and every job was stamped completed.</div>
+          <button class="im-btn" id="im-go" type="button">Check the payloads</button>
+          <button class="im-btn" id="im-rst" type="button" style="display:none">Reset</button>
         </div>
+        <p>The primary model provider had quietly rolled an update to their structured JSON enforcement engine around 16:00 UTC the previous day. Up until that deploy, requesting <code>structured_analysis</code> returned a flat JSON object with a root key named <code>billing_codes</code>. After the deploy, the provider's parser began nesting those codes under a newly introduced <code>diagnostics</code> parent key.</p>
+        <p>Because the API response still returned HTTP 200 OK, the API client didn't retry. Because the extraction logic used a safe-navigation getter (<code>data.get('billing_codes', [])</code>), the code didn't crash. It simply grabbed the default empty list and moved on. The pipeline faithfully saved thousands of blank billing records to PostgreSQL, stamped the job as completed, and sent a success metric to StatsD.</p>
+        <div class="pq">
+          <div class="pq-txt">“The system worked perfectly according to every system metric configured. It was completely broken according to the business.”</div>
+          <div class="shr-row">
+            <button class="shr" data-net="x" data-quote="The system worked perfectly according to every system metric configured. It was completely broken according to the business." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="The system worked perfectly according to every system metric configured. It was completely broken according to the business." aria-label="Share on LinkedIn">in</button>
+          </div>
+        </div>
+        <p>It took three hours of frantic debugging to realize the code wasn't failing. It was succeeding at doing nothing. The telemetry tracked execution completion, not payload validity. The team was monitoring the pipe, not what was flowing through it.</p>
+        <div class="pq">
+          <div class="pq-txt">“When your primary dependency is a probabilistic black box managed by a third party, a 200 OK status code isn't a success signal. It's just an acknowledgment that your request arrived.”</div>
+          <div class="shr-row">
+            <button class="shr" data-net="x" data-quote="When your primary dependency is a probabilistic black box managed by a third party, a 200 OK status code isn&#x27;t a success signal. It&#x27;s just an acknowledgment that your request arrived." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="When your primary dependency is a probabilistic black box managed by a third party, a 200 OK status code isn&#x27;t a success signal. It&#x27;s just an acknowledgment that your request arrived." aria-label="Share on LinkedIn">in</button>
+          </div>
+        </div>
+        <p>Four lines of runtime validation fixed the immediate issue. The real fix took longer: rewriting every health check to validate schema completeness instead of HTTP status codes.</p>
+      </div>
+    </article>
+  </main>
 
-        <footer>
-            <p>Composite case analysis based on real-world incident patterns.</p>
-            <p><a href="https://iggym.github.io/ai-ops-field-notes/">Return to AI Ops Field Notes Index</a></p>
-        </footer>
-    </div>
+  <footer>
+    <p>Composite case analysis based on real-world incident patterns. No specific company incident referenced.</p>
+    <p style="margin-top:.5rem"><a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a></p>
+  </footer>
 
-    <script>
-        window.addEventListener('scroll', () => {
-            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrolled = (winScroll / height) * 100;
-            document.getElementById('progress').style.width = scrolled + '%';
-        });
-    </script>
+  <script>
+    const pr=document.getElementById('progress');
+    window.addEventListener('scroll',()=>{
+      const h=document.documentElement;
+      const max=h.scrollHeight-h.clientHeight;
+      pr.style.width=(max>0?Math.min(h.scrollTop/max*100,100):0)+'%';
+    });
+
+    
+    /* interactive moment: flip every row from what the dashboard said to what was true */
+    const ROWS=[{"label": "HTTP 200 OK", "before": ["99.99%", "ok"], "after": ["99.99%", "ok"]}, {"label": "Pipeline exception rate", "before": ["0.00%", "ok"], "after": ["0.00%", "ok"]}, {"label": "Jobs completed", "before": ["4,000 / 4,000", "ok"], "after": ["4,000 / 4,000", "ok"]}, {"label": "Response shape", "before": ["not monitored", "dim"], "after": ["{ diagnostics: { billing_codes: […] } }", "warn"]}, {"label": "Billing codes extracted", "before": ["not monitored", "dim"], "after": ["0 items, on every chart", "bad"]}];
+    const im=document.getElementById('im');
+    function setState(after){
+      ROWS.forEach((r,i)=>{
+        const el=document.getElementById('r'+i);
+        const v=after?r.after:r.before;
+        el.textContent=v[0];el.className='im-r '+v[1];
+      });
+      document.getElementById('im-note').classList.toggle('vis',after);
+      document.getElementById('im-go').style.display=after?'none':'inline-block';
+      document.getElementById('im-rst').style.display=after?'inline-block':'none';
+      (after?document.getElementById('im-rst'):document.getElementById('im-go')).focus({preventScroll:true});
+    }
+    document.getElementById('im-go').addEventListener('click',()=>setState(true));
+    document.getElementById('im-rst').addEventListener('click',()=>setState(false));
+
+
+    /* share */
+    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-green-dashboard-that-lied.html';
+    const ART_TITLE="The Green Dashboard That Lied";
+    document.querySelectorAll('.shr').forEach(b=>b.addEventListener('click',()=>{
+      const u=b.dataset.net==='x'
+        ?'https://twitter.com/intent/tweet?text='+encodeURIComponent('"'+b.dataset.quote+'" — '+ART_TITLE+' '+ART_URL)
+        :'https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(ART_URL);
+      window.open(u,'_blank','noopener,width=600,height=500');
+    }));
+  </script>
 </body>
 </html>

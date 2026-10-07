@@ -1,324 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Loop That Ate The Key - AI Ops Field Notes</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #0d1117;
-            --card-bg: #161b22;
-            --border: #30363d;
-            --text: #c9d1d9;
-            --text-heading: #f0f6fc;
-            --text-muted: #8b949e;
-            --accent: #58a6ff;
-            --danger: #f85149;
-            --success: #3fb950;
-            --warning: #d29922;
-            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            --font-mono: 'Fira Code', monospace;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: var(--font-sans);
-            line-height: 1.7;
-            padding-bottom: 60px;
-        }
-
-        #progress {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 3px;
-            background: var(--accent);
-            width: 0%;
-            z-index: 1000;
-            transition: width 0.1s ease;
-        }
-
-        .topbar {
-            position: sticky;
-            top: 0;
-            background: rgba(13, 17, 23, 0.85);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border);
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 900;
-        }
-
-        .topbar a {
-            color: var(--text-heading);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .topbar a:hover {
-            color: var(--accent);
-        }
-
-        .meta-info {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-family: var(--font-mono);
-        }
-
-        .container {
-            max-width: 620px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        header {
-            margin-bottom: 32px;
-        }
-
-        .tag {
-            display: inline-block;
-            background: rgba(88, 166, 255, 0.1);
-            color: var(--accent);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-family: var(--font-mono);
-            margin-bottom: 12px;
-            border: 1px solid rgba(88, 166, 255, 0.2);
-        }
-
-        h1 {
-            color: var(--text-heading);
-            font-size: clamp(1.7rem, 4vw, 2.4rem);
-            line-height: 1.25;
-            letter-spacing: -0.02em;
-            margin-bottom: 12px;
-        }
-
-        .dispatch-date {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-family: var(--font-mono);
-        }
-
-        .content p {
-            margin-bottom: 20px;
-            font-size: 1.05rem;
-        }
-
-        .interactive-container {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            margin: 32px 0;
-        }
-
-        .interactive-title {
-            font-size: 0.85rem;
-            font-family: var(--font-mono);
-            color: var(--text-muted);
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-
-        .stat-card {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 12px;
-            font-family: var(--font-mono);
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .stat-value {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-heading);
-        }
-
-        .stat-value.danger {
-            color: var(--danger);
-        }
-
-        .pull-quote {
-            border-left: 3px solid var(--accent);
-            padding: 12px 0 12px 20px;
-            margin: 28px 0;
-            background: rgba(22, 27, 34, 0.5);
-            border-radius: 0 6px 6px 0;
-        }
-
-        .pull-quote p {
-            font-size: 1.05rem;
-            color: var(--text-heading);
-            font-style: italic;
-            margin-bottom: 12px;
-        }
-
-        .share-buttons {
-            display: flex;
-            gap: 12px;
-        }
-
-        .share-btn {
-            background: var(--border);
-            color: var(--text);
-            border: none;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            text-decoration: none;
-        }
-
-        .share-btn:hover {
-            background: var(--accent);
-            color: #fff;
-        }
-
-        footer {
-            margin-top: 60px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border);
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-align: center;
-        }
-
-        footer a {
-            color: var(--accent);
-            text-decoration: none;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            #progress {
-                transition: none;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Loop That Ate The Key — AI Ops Field Notes</title>
+  <meta name="description" content="When you build agentic loops, never let an LLM decide when to stop trying.">
+  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-loop-that-ate-the-key.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="AI Ops Field Notes">
+  <meta property="og:title" content="The Loop That Ate The Key">
+  <meta property="og:description" content="When you build agentic loops, never let an LLM decide when to stop trying.">
+  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-loop-that-ate-the-key.html">
+  <meta property="article:published_time" content="2026-05-20">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="The Loop That Ate The Key">
+  <meta name="twitter:description" content="When you build agentic loops, never let an LLM decide when to stop trying.">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The Loop That Ate The Key", "description": "When you build agentic loops, never let an LLM decide when to stop trying.", "datePublished": "2026-05-20", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-loop-that-ate-the-key.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#09090b;--surface:#18181b;--text:#e4e4e7;--text-dim:#71717a;
+      --accent:#ef4444;--green:#22c55e;--yellow:#eab308;--border:#27272a;
+      --glass:rgba(9,9,11,0.82);
+    }
+    html{scroll-behavior:smooth}
+    body{
+      font-family:'IBM Plex Serif',Georgia,serif;background:var(--bg);
+      color:var(--text);line-height:1.8;min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+    }
+    #progress{position:fixed;top:0;left:0;height:2px;background:var(--accent);z-index:200;width:0%}
+    #topbar{
+      position:sticky;top:0;z-index:100;
+      backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      background:var(--glass);border-bottom:1px solid var(--border);
+      padding:.6rem 1.5rem;display:flex;align-items:center;justify-content:space-between;
+      font-family:'IBM Plex Mono',monospace;font-size:.78rem;
+    }
+    #topbar a{color:var(--text-dim);text-decoration:none;transition:color .15s}
+    #topbar a:hover{color:var(--text)}
+    .tb-l{display:flex;align-items:center;gap:1.25rem}
+    .tb-r{color:var(--text-dim);font-size:.72rem}
+    .ham{display:none;cursor:pointer;font-size:1.15rem;color:var(--text-dim);background:none;border:none;padding:0}
+    .tb-nav{display:flex;gap:1rem}
+    @media(max-width:600px){
+      .ham{display:inline-block}
+      .tb-nav{display:none}
+      .tb-nav.open{
+        display:flex;flex-direction:column;gap:.5rem;position:absolute;
+        top:100%;left:0;right:0;background:var(--surface);
+        padding:.75rem 1.5rem;border-bottom:1px solid var(--border);
+      }
+    }
+    main{max-width:620px;margin:0 auto;padding:3rem 1.5rem 4rem}
+    .hero-title{font-size:clamp(1.7rem,4vw,2.4rem);font-weight:600;line-height:1.15;margin-bottom:.6rem;letter-spacing:-.01em}
+    .hero-meta{font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--text-dim);margin-bottom:2.5rem}
+    .dispatch-body p{margin-bottom:1.2rem}
+    .dispatch-body code{font-family:'IBM Plex Mono',monospace;font-size:.85em;background:var(--surface);padding:.05rem .3rem;border-radius:3px}
+    .im{
+      background:var(--surface);border:1px solid var(--border);border-radius:6px;
+      padding:1.25rem 1.5rem;margin:2rem -.25rem;
+      font-family:'IBM Plex Mono',monospace;font-size:.78rem;
+    }
+    .im-cap{color:var(--text-dim);font-size:.68rem;margin-bottom:.85rem;text-transform:uppercase;letter-spacing:.08em}
+    .im-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.45rem 0;border-bottom:1px solid var(--border);font-size:.74rem}
+    .im-row:last-of-type{border-bottom:none}
+    .im-l{color:var(--text-dim)}
+    .im-r{font-weight:500;text-align:right;transition:color .25s}
+    .ok{color:var(--green)}
+    .bad{color:var(--accent)}
+    .dim{color:var(--text-dim)}
+    .warn{color:var(--yellow)}
+    .im-note{color:var(--yellow);font-size:.7rem;margin-top:.6rem;line-height:1.5;opacity:0;transition:opacity .35s}
+    .im-note.vis{opacity:1}
+    .im-btn{
+      display:inline-block;margin-top:.85rem;margin-right:.4rem;padding:.35rem .75rem;
+      background:transparent;border:1px solid var(--border);color:var(--text-dim);
+      border-radius:4px;cursor:pointer;font-family:'IBM Plex Mono',monospace;
+      font-size:.7rem;transition:color .15s,border-color .15s;
+    }
+    .im-btn:hover{color:var(--text);border-color:var(--text-dim)}
+    .im-btn:focus-visible,.shr:focus-visible,.ham:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    .pq{border-left:3px solid var(--accent);padding-left:1rem;margin:2rem 0;font-style:italic}
+    .pq-txt{margin-bottom:.4rem}
+    .shr-row{display:flex;gap:.4rem}
+    .shr{
+      display:inline-flex;align-items:center;padding:.2rem .5rem;background:var(--surface);
+      border:1px solid var(--border);color:var(--text-dim);border-radius:3px;cursor:pointer;
+      font-family:'IBM Plex Mono',monospace;font-size:.65rem;transition:color .15s,border-color .15s;
+    }
+    .shr:hover{color:var(--text);border-color:var(--text-dim)}
+    footer{
+      max-width:620px;margin:0 auto;padding:2rem 1.5rem;border-top:1px solid var(--border);
+      font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--text-dim);
+    }
+    footer a{color:var(--text-dim);text-decoration:none}
+    footer a:hover{color:var(--text)}
+    @media(prefers-reduced-motion:reduce){
+      html{scroll-behavior:auto!important}
+      *{transition:none!important;animation:none!important}
+    }
+  </style>
 </head>
 <body>
+  <div id="progress"></div>
 
-    <div id="progress"></div>
-
-    <div class="topbar">
-        <a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a>
-        <div class="meta-info">3 min read</div>
+  <header id="topbar">
+    <div class="tb-l">
+      <a href="https://iggym.github.io/ai-ops-field-notes/">Home</a>
+      <button class="ham" type="button" onclick="document.querySelector('.tb-nav').classList.toggle('open')" aria-label="Toggle menu">☰</button>
+      <nav class="tb-nav">
+        <a href="https://iggym.github.io/ai-ops-field-notes/">Field Notes</a>
+      </nav>
     </div>
+    <div class="tb-r">2 min read</div>
+  </header>
 
-    <div class="container">
-        <header>
-            <span class="tag">DISPATCH #021</span>
-            <h1>The Loop That Ate The Key</h1>
-            <div class="dispatch-date">MAY 20, 2026</div>
-        </header>
+  <main>
+    <article>
+      <h1 class="hero-title">The Loop That Ate The Key</h1>
+      <div class="hero-meta">2026-05-20 · dispatch</div>
 
-        <div class="content">
-            <p>It started with a single customer uploading a scanned invoice containing zero bytes of valid text.</p>
-
-            <p>At 11:04 AM, the background worker picked up the job. The worker ran an autonomous agent tasked with extracting key-value pairs from documents. When the PDF parser tool failed on the empty document, it returned a standard Python exception: <code>UnicodeDecodeError: 'utf-8' codec can't decode byte</code>.</p>
-
-            <p>Instead of crashing the job, the framework did what its prompt instructed: it caught the error, appended the full stack trace to the agent's memory, and asked the model to try a different extraction strategy.</p>
-
-            <p>The model tried again. It called the parser tool with a different encoding flag. The parser failed again. The framework appended <em>that</em> stack trace as well.</p>
-
-            <div class="interactive-container">
-                <div class="interactive-title">Agent Retry Storm Dynamics</div>
-                <div class="stat-grid">
-                    <div class="stat-card">
-                        <span class="stat-label">Iter 1 Context</span>
-                        <span class="stat-value">1,500 tokens</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">Iter 15 Context</span>
-                        <span class="stat-value">64,000 tokens</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">Total Spend</span>
-                        <span class="stat-value danger">$2,200.00</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">Active Threads</span>
-                        <span class="stat-value danger">1 Thread</span>
-                    </div>
-                </div>
-            </div>
-
-            <p>In traditional software, a retry loop executes the same function N times. The cost is linear. In an LLM agentic loop, every retry appends the failure history to the context window. Attempt 1 sent 1,500 tokens. Attempt 5 sent 12,000 tokens. Attempt 15 sent 64,000 tokens of nested stack traces, previous attempts, and system instructions.</p>
-
-            <div class="pull-quote">
-                <p>In an LLM agentic loop, retries don't scale linearly—they scale quadratically as context windows swell with past stack traces.</p>
-                <div class="share-buttons">
-                    <a class="share-btn" href="https://twitter.com/intent/tweet?text=In%20an%20LLM%20agentic%20loop%2C%20retries%20don%27t%20scale%20linearly%E2%80%94they%20scale%20quadratically%20as%20context%20windows%20swell.&url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on X</a>
-                    <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on LinkedIn</a>
-                </div>
-            </div>
-
-            <p>By 11:18 AM, the single thread wasn't just retrying—it was firing ten requests a second. The model was spending 90% of its execution time processing its own past mistakes.</p>
-
-            <p>At 11:22 AM, PagerDuty alerted on a total API outage across all production services. Every application using the primary LLM client key was receiving HTTP 429 Rate Limit Exceeded errors. The engineering team assumed they were under an external credential-stuffing attack or facing an upstream provider degradation.</p>
-
-            <p>The worker was stuck in a tight loop at iteration #84. It had consumed $2,200 worth of API credits in thirty-two minutes before running out of quota and taking down the rest of the company's production pipelines with it.</p>
-
-            <p>The immediate fix was a hard execution cap: maximum 5 tool calls per agent invocation, period. The real architecture fix was removing raw exception strings from the agent's context window entirely.</p>
-
-            <div class="pull-quote">
-                <p>When you build agentic loops, never let an LLM decide when to stop trying.</p>
-                <div class="share-buttons">
-                    <a class="share-btn" href="https://twitter.com/intent/tweet?text=When%20you%20build%20agentic%20loops%2C%20never%20let%20an%20LLM%20decide%20when%20to%20stop%20trying.&url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on X</a>
-                    <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https://iggym.github.io/ai-ops-field-notes/" target="_blank">Share on LinkedIn</a>
-                </div>
-            </div>
-
-            <p>Software fails deterministically, but an agent fed its own error logs will burn down your entire infrastructure budget trying to prove it can fix them.</p>
+      <div class="dispatch-body">
+        <p>It started with a single customer uploading a scanned invoice containing zero bytes of valid text.</p>
+        <p>At 11:04 AM, the background worker picked up the job. The worker ran an autonomous agent tasked with extracting key-value pairs from documents. When the PDF parser tool failed on the empty document, it returned a standard Python exception: <code>UnicodeDecodeError: 'utf-8' codec can't decode byte</code>.</p>
+        <p>Instead of crashing the job, the framework did what its prompt instructed: it caught the error, appended the full stack trace to the agent's memory, and asked the model to try a different extraction strategy.</p>
+        <p>The model tried again. It called the parser tool with a different encoding flag. The parser failed again. The framework appended that stack trace as well.</p>
+        <div class="im" id="im" role="region" aria-label="Agent retry storm simulation">
+          <div class="im-cap">One empty PDF · one shared API key</div>
+          <div aria-live="polite">
+          <div class="im-row">
+            <div class="im-l">Iteration</div>
+            <div class="im-r ok" id="r0">#1 · 11:04</div>
+          </div>
+          <div class="im-row">
+            <div class="im-l">Context per request</div>
+            <div class="im-r ok" id="r1">1,500 tokens</div>
+          </div>
+          <div class="im-row">
+            <div class="im-l">Request rate</div>
+            <div class="im-r ok" id="r2">1 call</div>
+          </div>
+          <div class="im-row">
+            <div class="im-l">Total spend</div>
+            <div class="im-r ok" id="r3">$0.01</div>
+          </div>
+          <div class="im-row">
+            <div class="im-l">Other services on the key</div>
+            <div class="im-r ok" id="r4">healthy</div>
+          </div>
+          </div>
+          <div class="im-note" id="im-note">⚠ Every retry appended the previous stack trace to the context. Cost per attempt grew with each failure, and the single thread exhausted the key that every other service shared.</div>
+          <button class="im-btn" id="im-go" type="button">Jump to iteration #84</button>
+          <button class="im-btn" id="im-rst" type="button" style="display:none">Reset</button>
         </div>
+        <p>In traditional software, a retry loop executes the same function N times. The cost is linear. In an LLM agentic loop, every retry appends the failure history to the context window. Attempt 1 sent 1,500 tokens. Attempt 5 sent 12,000 tokens. Attempt 15 sent 64,000 tokens of nested stack traces, previous attempts, and system instructions.</p>
+        <div class="pq">
+          <div class="pq-txt">“In an LLM agentic loop, retries don't scale linearly. They scale quadratically as context windows swell with past stack traces.”</div>
+          <div class="shr-row">
+            <button class="shr" data-net="x" data-quote="In an LLM agentic loop, retries don&#x27;t scale linearly. They scale quadratically as context windows swell with past stack traces." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="In an LLM agentic loop, retries don&#x27;t scale linearly. They scale quadratically as context windows swell with past stack traces." aria-label="Share on LinkedIn">in</button>
+          </div>
+        </div>
+        <p>By 11:18 AM, the single thread wasn't just retrying. It was firing ten requests a second. The model was spending 90% of its execution time processing its own past mistakes.</p>
+        <p>At 11:22 AM, PagerDuty alerted on a total API outage across all production services. Every application using the primary LLM client key was receiving HTTP 429 Rate Limit Exceeded errors. The engineering team assumed they were under an external credential-stuffing attack or facing an upstream provider degradation.</p>
+        <p>The worker was stuck in a tight loop at iteration #84. It had consumed $2,200 worth of API credits in thirty-two minutes before running out of quota and taking down the rest of the company's production pipelines with it.</p>
+        <p>The immediate fix was a hard execution cap: maximum 5 tool calls per agent invocation, period. The real architecture fix was removing raw exception strings from the agent's context window entirely.</p>
+        <div class="pq">
+          <div class="pq-txt">“When you build agentic loops, never let an LLM decide when to stop trying.”</div>
+          <div class="shr-row">
+            <button class="shr" data-net="x" data-quote="When you build agentic loops, never let an LLM decide when to stop trying." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="When you build agentic loops, never let an LLM decide when to stop trying." aria-label="Share on LinkedIn">in</button>
+          </div>
+        </div>
+        <p>Software fails deterministically, but an agent fed its own error logs will burn down your entire infrastructure budget trying to prove it can fix them.</p>
+      </div>
+    </article>
+  </main>
 
-        <footer>
-            <p>Composite case analysis based on autonomous agent retry loop failures.</p>
-            <p><a href="https://iggym.github.io/ai-ops-field-notes/">Return to AI Ops Field Notes Index</a></p>
-        </footer>
-    </div>
+  <footer>
+    <p>Composite case analysis based on autonomous agent retry loop failures. No specific company incident referenced.</p>
+    <p style="margin-top:.5rem"><a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a></p>
+  </footer>
 
-    <script>
-        window.addEventListener('scroll', () => {
-            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrolled = (winScroll / height) * 100;
-            document.getElementById('progress').style.width = scrolled + '%';
-        });
-    </script>
+  <script>
+    const pr=document.getElementById('progress');
+    window.addEventListener('scroll',()=>{
+      const h=document.documentElement;
+      const max=h.scrollHeight-h.clientHeight;
+      pr.style.width=(max>0?Math.min(h.scrollTop/max*100,100):0)+'%';
+    });
+
+    
+    /* interactive moment: flip every row from what the dashboard said to what was true */
+    const ROWS=[{"label": "Iteration", "before": ["#1 · 11:04", "ok"], "after": ["#84 · 11:36", "bad"]}, {"label": "Context per request", "before": ["1,500 tokens", "ok"], "after": ["64,000+ tokens (traces)", "bad"]}, {"label": "Request rate", "before": ["1 call", "ok"], "after": ["~10 req/s", "bad"]}, {"label": "Total spend", "before": ["$0.01", "ok"], "after": ["$2,200 in 32 min", "bad"]}, {"label": "Other services on the key", "before": ["healthy", "ok"], "after": ["HTTP 429 everywhere", "bad"]}];
+    const im=document.getElementById('im');
+    function setState(after){
+      ROWS.forEach((r,i)=>{
+        const el=document.getElementById('r'+i);
+        const v=after?r.after:r.before;
+        el.textContent=v[0];el.className='im-r '+v[1];
+      });
+      document.getElementById('im-note').classList.toggle('vis',after);
+      document.getElementById('im-go').style.display=after?'none':'inline-block';
+      document.getElementById('im-rst').style.display=after?'inline-block':'none';
+      (after?document.getElementById('im-rst'):document.getElementById('im-go')).focus({preventScroll:true});
+    }
+    document.getElementById('im-go').addEventListener('click',()=>setState(true));
+    document.getElementById('im-rst').addEventListener('click',()=>setState(false));
+
+
+    /* share */
+    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-loop-that-ate-the-key.html';
+    const ART_TITLE="The Loop That Ate The Key";
+    document.querySelectorAll('.shr').forEach(b=>b.addEventListener('click',()=>{
+      const u=b.dataset.net==='x'
+        ?'https://twitter.com/intent/tweet?text='+encodeURIComponent('"'+b.dataset.quote+'" — '+ART_TITLE+' '+ART_URL)
+        :'https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(ART_URL);
+      window.open(u,'_blank','noopener,width=600,height=500');
+    }));
+  </script>
 </body>
 </html>

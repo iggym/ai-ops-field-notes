@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Trace That Kept Everything — AI Ops Field Notes</title>
-  <meta name="description" content="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.">
-  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html">
+  <title>Two Agents, Both Waiting — AI Ops Field Notes</title>
+  <meta name="description" content="The quietest agent failure isn&#x27;t the one burning tokens. It&#x27;s the one where everyone is politely waiting.">
+  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/two-agents-both-waiting.html">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="AI Ops Field Notes">
-  <meta property="og:title" content="The Trace That Kept Everything">
-  <meta property="og:description" content="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.">
-  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html">
-  <meta property="article:published_time" content="2026-08-04">
+  <meta property="og:title" content="Two Agents, Both Waiting">
+  <meta property="og:description" content="The quietest agent failure isn&#x27;t the one burning tokens. It&#x27;s the one where everyone is politely waiting.">
+  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/two-agents-both-waiting.html">
+  <meta property="article:published_time" content="2025-10-14">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="The Trace That Kept Everything">
-  <meta name="twitter:description" content="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The Trace That Kept Everything", "description": "You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.", "datePublished": "2026-08-04", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
+  <meta name="twitter:title" content="Two Agents, Both Waiting">
+  <meta name="twitter:description" content="The quietest agent failure isn&#x27;t the one burning tokens. It&#x27;s the one where everyone is politely waiting.">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Two Agents, Both Waiting", "description": "The quietest agent failure isn't the one burning tokens. It's the one where everyone is politely waiting.", "datePublished": "2025-10-14", "url": "https://iggym.github.io/ai-ops-field-notes/articles/two-agents-both-waiting.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
@@ -121,61 +121,60 @@
 
   <main>
     <article>
-      <h1 class="hero-title">The Trace That Kept Everything</h1>
-      <div class="hero-meta">2026-08-04 · dispatch</div>
+      <h1 class="hero-title">Two Agents, Both Waiting</h1>
+      <div class="hero-meta">2025-10-14 · dispatch</div>
 
       <div class="dispatch-body">
-        <p>The finding came from a privacy auditor, not an alert. She was walking the data map for the benefits assistant, the chatbot that helped employees with insurance claims, and asked a simple question about the tracing vendor listed under “observability”: what fields do we send them?</p>
-        <p>Nobody in the room knew. The engineering lead said “latency and token counts, mostly.” The platform engineer opened the vendor's UI to check. The first span he clicked on contained a full Social Security number.</p>
-        <p>The team had done the work on logging. A redaction filter on the application logger matched SSNs, dates of birth, policy numbers and bank details, and replaced them before anything was written. It had tests. It had been reviewed by security. The logs were clean, and the team had reasonably concluded that the system was clean.</p>
-        <p>The tracing SDK didn't go through the logger.</p>
-        <p>That sentence took the team about twenty minutes to understand and most of the next quarter to clean up.</p>
-        <div class="im" id="im" role="region" aria-label="Redaction coverage simulation">
-          <div class="im-cap">One request, two copies</div>
+        <p>The sales director's message was short. Forty-one new enterprise customers had signed in the last week, and none of them had received their workspace credentials. Two had already asked whether they should cancel.</p>
+        <p>Onboarding was handled by a pair of agents. A planner read the contract and drafted a provisioning plan: which workspaces, which integrations, which seat counts. A reviewer checked the plan against the contract and either approved it or sent it back with notes. When the reviewer approved, provisioning ran automatically. It had worked for four months.</p>
+        <p>The dashboards were spotless. No errors. No retries. Token spend for the onboarding system was actually down 40% for the week, which someone had noticed and taken as a sign the new prompts were more efficient.</p>
+        <p>The engineer who picked it up opened one of the stuck workflows. Status: in progress. Last activity: 71 hours ago. She opened the planner's last message. It had sent a plan and was waiting for approval. She opened the reviewer's last message. It had sent the plan back with a note, “seat count doesn't match Schedule B, please revise,” and was waiting for a revised plan.</p>
+        <p>Both agents were waiting for each other.</p>
+        <div class="im" id="im" role="region" aria-label="Multi-agent deadlock simulation">
+          <div class="im-cap">Onboarding workflow #48812 · 71 hours in</div>
           <div aria-live="polite">
           <div class="im-row">
-            <div class="im-l">App log: prompt</div>
-            <div class="im-r ok" id="r0">SSN [REDACTED], DOB [REDACTED]</div>
+            <div class="im-l">Errors</div>
+            <div class="im-r ok" id="r0">0</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Redaction filter</div>
-            <div class="im-r ok" id="r1">active ✓</div>
+            <div class="im-l">Token spend</div>
+            <div class="im-r ok" id="r1">↓ 40% (efficient!)</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Trace span: llm.input</div>
-            <div class="im-r dim" id="r2">(not inspected)</div>
+            <div class="im-l">Planner</div>
+            <div class="im-r dim" id="r2">status: waiting</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Trace retention</div>
-            <div class="im-r dim" id="r3">(not on data map)</div>
+            <div class="im-l">Reviewer</div>
+            <div class="im-r dim" id="r3">status: waiting</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Spans affected</div>
-            <div class="im-r dim" id="r4">0 known</div>
+            <div class="im-l">Workflows stuck</div>
+            <div class="im-r dim" id="r4">not measured</div>
           </div>
           </div>
-          <div class="im-note" id="im-note">⚠ The redaction filter ran on the logging handler. The tracing SDK captured llm.input from the client call, upstream of it, and shipped it to a vendor with 400-day retention.</div>
-          <button class="im-btn" id="im-go" type="button">Open the trace span</button>
+          <div class="im-note" id="im-note">⚠ The planner was waiting for approval. The reviewer was waiting for a revised plan. Both had been told to wait, neither had a timeout, and waiting costs nothing.</div>
+          <button class="im-btn" id="im-go" type="button">Inspect both agents</button>
           <button class="im-btn" id="im-rst" type="button" style="display:none">Reset</button>
         </div>
-        <p>It had been added seven months earlier, when the team wanted per-step latency for their retrieval pipeline. The SDK's auto-instrumentation wrapped the LLM client and captured the full prompt and completion as span attributes. That is its default, and it is very useful for debugging. It captured them at the client call, upstream of the logging handler, so the redaction filter never saw them. Every prompt a user typed, including the ones where they pasted a claim form, went to the vendor verbatim.</p>
+        <p>A prompt change the week before had introduced it. To reduce chatter, the planner had been told to wait for an explicit approval message before doing anything else. The reviewer's “please revise” notes didn't count as approval, and they weren't phrased as a request the planner recognized as needing a reply. The planner read the note, decided no action was required until approval arrived, and went quiet. The reviewer, having asked for a revision, went quiet too.</p>
         <div class="pq">
-          <div class="pq-txt">“The logs were clean, and the team had reasonably concluded that the system was clean.”</div>
+          <div class="pq-txt">“Both agents were waiting for each other.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="The logs were clean, and the team had reasonably concluded that the system was clean." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="The logs were clean, and the team had reasonably concluded that the system was clean." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="Both agents were waiting for each other." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="Both agents were waiting for each other." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
-        <p>The vendor stored spans for 400 days, in a region the company's data processing agreement didn't cover. Rough count: 2.3 million spans with user content, an unknown fraction carrying identifiers. No breach in the attacker sense, but the company now had regulated health and identity data sitting in a system it had never assessed, under a retention policy it had never agreed to.</p>
-        <p>The cleanup took six weeks: a deletion request to the vendor, a written attestation back, legal review of notification obligations, and a re-run of the data protection impact assessment with tracing in scope this time.</p>
-        <p>The engineering fix was smaller and more pointed. Content capture is now off by default in the tracing config, enforced by a CI check that fails the build if it's enabled. Where engineers need prompt content to debug, it passes through the same redaction function as the logs, at the SDK's span processor, before export. The data map now lists every exporter in the process, not every vendor in the contract.</p>
-        <p>Observability tools are built to capture everything because that's what makes them useful. In an LLM system, everything includes whatever the user typed.</p>
-        <p>You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.</p>
+        <p>Every agent failure the team had planned for was loud: runaway loops, cost spikes, tool errors. This one was the opposite. A deadlocked agent doesn't call tools, doesn't spend tokens, and doesn't throw. The falling token spend was the only signal, and it looked like good news.</p>
+        <p>The immediate fix was a script that found 2,300 stuck workflows and re-queued them with the planner prompt reverted. Credentials went out within six hours.</p>
+        <p>The structural fix was to take coordination away from the agents. The workflow is now a state machine in ordinary code: the orchestrator, not the agents, decides whose turn it is, and every state has a timeout. A plan sent back for revision goes to the planner with an explicit instruction to revise. Any workflow in one state for more than two hours pages a human. And the main dashboard now shows workflow age, p50 and p99, next to cost and errors, because “nothing is happening” is a state worth alerting on.</p>
+        <p>The quietest agent failure isn't the one burning tokens. It's the one where everyone is politely waiting.</p>
         <div class="pq">
-          <div class="pq-txt">“You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.”</div>
+          <div class="pq-txt">“The quietest agent failure isn't the one burning tokens. It's the one where everyone is politely waiting.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="The quietest agent failure isn&#x27;t the one burning tokens. It&#x27;s the one where everyone is politely waiting." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="The quietest agent failure isn&#x27;t the one burning tokens. It&#x27;s the one where everyone is politely waiting." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
       </div>
@@ -183,7 +182,7 @@
   </main>
 
   <footer>
-    <p>Composite dispatch based on documented PII exposure through LLM tracing and observability pipelines. No specific company incident referenced.</p>
+    <p>Composite dispatch based on documented coordination failures in multi-agent workflows. No specific company incident referenced.</p>
     <p style="margin-top:.5rem"><a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a></p>
   </footer>
 
@@ -197,7 +196,7 @@
 
     
     /* interactive moment: flip every row from what the dashboard said to what was true */
-    const ROWS=[{"label": "App log: prompt", "before": ["SSN [REDACTED], DOB [REDACTED]", "ok"], "after": ["SSN [REDACTED], DOB [REDACTED]", "ok"]}, {"label": "Redaction filter", "before": ["active ✓", "ok"], "after": ["active ✓ (logs only)", "warn"]}, {"label": "Trace span: llm.input", "before": ["(not inspected)", "dim"], "after": ["SSN 5██-██-1847, DOB 1979-03-██", "bad"]}, {"label": "Trace retention", "before": ["(not on data map)", "dim"], "after": ["400 days · third-party region", "bad"]}, {"label": "Spans affected", "before": ["0 known", "dim"], "after": ["~2.3M over 7 months", "bad"]}];
+    const ROWS=[{"label": "Errors", "before": ["0", "ok"], "after": ["0", "ok"]}, {"label": "Token spend", "before": ["↓ 40% (efficient!)", "ok"], "after": ["↓ 40% (nobody working)", "warn"]}, {"label": "Planner", "before": ["status: waiting", "dim"], "after": ["waiting for: approval", "bad"]}, {"label": "Reviewer", "before": ["status: waiting", "dim"], "after": ["waiting for: revised plan", "bad"]}, {"label": "Workflows stuck", "before": ["not measured", "dim"], "after": ["2,300 · oldest 71h", "bad"]}];
     const im=document.getElementById('im');
     function setState(after){
       ROWS.forEach((r,i)=>{
@@ -215,8 +214,8 @@
 
 
     /* share */
-    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html';
-    const ART_TITLE="The Trace That Kept Everything";
+    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/two-agents-both-waiting.html';
+    const ART_TITLE="Two Agents, Both Waiting";
     document.querySelectorAll('.shr').forEach(b=>b.addEventListener('click',()=>{
       const u=b.dataset.net==='x'
         ?'https://twitter.com/intent/tweet?text='+encodeURIComponent('"'+b.dataset.quote+'" — '+ART_TITLE+' '+ART_URL)

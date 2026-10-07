@@ -195,6 +195,7 @@
       pr.style.width=(max>0?Math.min(h.scrollTop/max*100,100):0)+'%';
     });
 
+    
     /* interactive moment: flip every row from what the dashboard said to what was true */
     const ROWS=[{"label": "Pipeline status", "before": ["OK · 0 errors", "ok"], "after": ["OK · 0 errors (caught)", "warn"]}, {"label": "Risk score", "before": ["low", "ok"], "after": ["low (default)", "bad"]}, {"label": "Raw model output", "before": ["(not stored)", "dim"], "after": ["```json {\"risk\":\"high\",…} ```", "bad"]}, {"label": "Parse result", "before": ["(not shown)", "dim"], "after": ["JSONDecodeError → fallback", "bad"]}, {"label": "Share of 'low' verdicts", "before": ["91% (normal ≈ 91%)", "ok"], "after": ["100% for 71 hours", "bad"]}];
     const im=document.getElementById('im');
@@ -211,6 +212,7 @@
     }
     document.getElementById('im-go').addEventListener('click',()=>setState(true));
     document.getElementById('im-rst').addEventListener('click',()=>setState(false));
+
 
     /* share */
     const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-parser-said-low-risk.html';

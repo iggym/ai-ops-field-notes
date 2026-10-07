@@ -193,6 +193,7 @@
       pr.style.width=(max>0?Math.min(h.scrollTop/max*100,100):0)+'%';
     });
 
+    
     /* interactive moment: flip every row from what the dashboard said to what was true */
     const ROWS=[{"label": "Cache", "before": ["HIT · 38ms", "ok"], "after": ["HIT · 38ms", "ok"]}, {"label": "Answer", "before": ["“Yes, within 60 days.”", "ok"], "after": ["“Yes, within 60 days.”", "bad"]}, {"label": "Current policy (KB)", "before": ["(not checked on hit)", "dim"], "after": ["30 days · unopened only · v14", "warn"]}, {"label": "Policy version at cache write", "before": ["(not stored)", "dim"], "after": ["v13", "bad"]}, {"label": "Cache hit rate", "before": ["64% ▲ cost savings", "ok"], "after": ["64% of answers unverified", "bad"]}];
     const im=document.getElementById('im');
@@ -209,6 +210,7 @@
     }
     document.getElementById('im-go').addEventListener('click',()=>setState(true));
     document.getElementById('im-rst').addEventListener('click',()=>setState(false));
+
 
     /* share */
     const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-cache-that-answered-last-quarter.html';

@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Trace That Kept Everything — AI Ops Field Notes</title>
-  <meta name="description" content="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.">
-  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html">
+  <title>The Eval That Had Seen the Answers — AI Ops Field Notes</title>
+  <meta name="description" content="An eval that overlaps your training data isn&#x27;t measuring the model. It&#x27;s measuring its memory.">
+  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-eval-that-had-seen-the-answers.html">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="AI Ops Field Notes">
-  <meta property="og:title" content="The Trace That Kept Everything">
-  <meta property="og:description" content="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.">
-  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html">
-  <meta property="article:published_time" content="2026-08-04">
+  <meta property="og:title" content="The Eval That Had Seen the Answers">
+  <meta property="og:description" content="An eval that overlaps your training data isn&#x27;t measuring the model. It&#x27;s measuring its memory.">
+  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-eval-that-had-seen-the-answers.html">
+  <meta property="article:published_time" content="2025-06-24">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="The Trace That Kept Everything">
-  <meta name="twitter:description" content="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The Trace That Kept Everything", "description": "You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.", "datePublished": "2026-08-04", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
+  <meta name="twitter:title" content="The Eval That Had Seen the Answers">
+  <meta name="twitter:description" content="An eval that overlaps your training data isn&#x27;t measuring the model. It&#x27;s measuring its memory.">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The Eval That Had Seen the Answers", "description": "An eval that overlaps your training data isn't measuring the model. It's measuring its memory.", "datePublished": "2025-06-24", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-eval-that-had-seen-the-answers.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
@@ -121,61 +121,57 @@
 
   <main>
     <article>
-      <h1 class="hero-title">The Trace That Kept Everything</h1>
-      <div class="hero-meta">2026-08-04 · dispatch</div>
+      <h1 class="hero-title">The Eval That Had Seen the Answers</h1>
+      <div class="hero-meta">2025-06-24 · dispatch</div>
 
       <div class="dispatch-body">
-        <p>The finding came from a privacy auditor, not an alert. She was walking the data map for the benefits assistant, the chatbot that helped employees with insurance claims, and asked a simple question about the tracing vendor listed under “observability”: what fields do we send them?</p>
-        <p>Nobody in the room knew. The engineering lead said “latency and token counts, mostly.” The platform engineer opened the vendor's UI to check. The first span he clicked on contained a full Social Security number.</p>
-        <p>The team had done the work on logging. A redaction filter on the application logger matched SSNs, dates of birth, policy numbers and bank details, and replaced them before anything was written. It had tests. It had been reviewed by security. The logs were clean, and the team had reasonably concluded that the system was clean.</p>
-        <p>The tracing SDK didn't go through the logger.</p>
-        <p>That sentence took the team about twenty minutes to understand and most of the next quarter to clean up.</p>
-        <div class="im" id="im" role="region" aria-label="Redaction coverage simulation">
-          <div class="im-cap">One request, two copies</div>
+        <p>The fine-tuned model shipped on a Thursday with the best eval numbers the team had ever posted. Ninety-four percent of support tickets resolved correctly on the offline set, against 81% for the base model it replaced. The launch note had a chart. People reacted with the rocket emoji.</p>
+        <p>Three weeks later, the support operations lead asked why the assistant's real-world resolution rate had gone down. Not up by thirteen points. Down by four.</p>
+        <p>The ML engineer on rotation assumed a production problem first: a prompt mismatch between eval and serving, a retrieval regression, a traffic shift. She checked each one. The serving prompt matched. Retrieval was unchanged. The ticket mix was normal for the season.</p>
+        <p>Then she went back to where the eval set came from.</p>
+        <p>Both the training data and the eval set had been drawn from the same export: eighteen months of resolved tickets. The pipeline split them 90/10 and removed exact duplicates across the split. That sounded careful. But support tickets are mostly the same few hundred problems asked in slightly different words, and many of the answers come from macros. Two tickets that say “I never got my reset email” and “password reset email not arriving” are not exact duplicates. To a model that trained on one of them, they are the same question.</p>
+        <div class="im" id="im" role="region" aria-label="Eval contamination simulation">
+          <div class="im-cap">Fine-tuned v3 vs. base model</div>
           <div aria-live="polite">
           <div class="im-row">
-            <div class="im-l">App log: prompt</div>
-            <div class="im-r ok" id="r0">SSN [REDACTED], DOB [REDACTED]</div>
+            <div class="im-l">Offline eval (1,200 tickets)</div>
+            <div class="im-r ok" id="r0">94% vs. 81% ▲</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Redaction filter</div>
-            <div class="im-r ok" id="r1">active ✓</div>
+            <div class="im-l">Near-duplicates in training</div>
+            <div class="im-r ok" id="r1">0 (exact match)</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Trace span: llm.input</div>
-            <div class="im-r dim" id="r2">(not inspected)</div>
+            <div class="im-l">Clean held-out eval</div>
+            <div class="im-r dim" id="r2">not built</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Trace retention</div>
-            <div class="im-r dim" id="r3">(not on data map)</div>
-          </div>
-          <div class="im-row">
-            <div class="im-l">Spans affected</div>
-            <div class="im-r dim" id="r4">0 known</div>
+            <div class="im-l">Production resolution rate</div>
+            <div class="im-r warn" id="r3">dropping, cause unknown</div>
           </div>
           </div>
-          <div class="im-note" id="im-note">⚠ The redaction filter ran on the logging handler. The tracing SDK captured llm.input from the client call, upstream of it, and shipped it to a vendor with 400-day retention.</div>
-          <button class="im-btn" id="im-go" type="button">Open the trace span</button>
+          <div class="im-note" id="im-note">⚠ Exact-match dedup missed paraphrases and templated tickets. 38% of eval items had a near-duplicate in the training set. On clean data, the fine-tune was slightly worse.</div>
+          <button class="im-btn" id="im-go" type="button">Deduplicate the eval set</button>
           <button class="im-btn" id="im-rst" type="button" style="display:none">Reset</button>
         </div>
-        <p>It had been added seven months earlier, when the team wanted per-step latency for their retrieval pipeline. The SDK's auto-instrumentation wrapped the LLM client and captured the full prompt and completion as span attributes. That is its default, and it is very useful for debugging. It captured them at the client call, upstream of the logging handler, so the redaction filter never saw them. Every prompt a user typed, including the ones where they pasted a claim form, went to the vendor verbatim.</p>
+        <p>She ran a near-duplicate check using embeddings with a similarity threshold of 0.9. Four hundred fifty-six of the 1,200 eval tickets had a close match in the training set, often with an identical macro response. The fine-tuned model had not learned to solve those tickets. It had learned the answers.</p>
         <div class="pq">
-          <div class="pq-txt">“The logs were clean, and the team had reasonably concluded that the system was clean.”</div>
+          <div class="pq-txt">“The fine-tuned model had not learned to solve those tickets. It had learned the answers.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="The logs were clean, and the team had reasonably concluded that the system was clean." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="The logs were clean, and the team had reasonably concluded that the system was clean." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="The fine-tuned model had not learned to solve those tickets. It had learned the answers." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="The fine-tuned model had not learned to solve those tickets. It had learned the answers." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
-        <p>The vendor stored spans for 400 days, in a region the company's data processing agreement didn't cover. Rough count: 2.3 million spans with user content, an unknown fraction carrying identifiers. No breach in the attacker sense, but the company now had regulated health and identity data sitting in a system it had never assessed, under a retention policy it had never agreed to.</p>
-        <p>The cleanup took six weeks: a deletion request to the vendor, a written attestation back, legal review of notification obligations, and a re-run of the data protection impact assessment with tracing in scope this time.</p>
-        <p>The engineering fix was smaller and more pointed. Content capture is now off by default in the tracing config, enforced by a CI check that fails the build if it's enabled. Where engineers need prompt content to debug, it passes through the same redaction function as the logs, at the SDK's span processor, before export. The data map now lists every exporter in the process, not every vendor in the contract.</p>
-        <p>Observability tools are built to capture everything because that's what makes them useful. In an LLM system, everything includes whatever the user typed.</p>
-        <p>You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.</p>
+        <p>She then built a clean eval from tickets created after the training export's cutoff date, so overlap was impossible. On that set, the fine-tune scored 79%. The base model scored 81%. The fine-tune was slightly worse at the job and much better at the test, and the team had shipped it on the strength of the test.</p>
+        <p>The rollback took ten minutes. Resolution rates recovered within a week.</p>
+        <p>Nobody had been careless. The split was random, the dedup was real, and the score was honestly computed. It just answered a different question from the one the team was asking.</p>
+        <p>The process changes were more durable. Eval sets are now split by time, never randomly: train on everything before a date, evaluate on everything after it. Near-duplicate detection runs across the boundary as a CI check, and the build fails above 2% overlap. Every eval report carries a contamination estimate next to the headline score. And any fine-tune that beats its base by more than five points gets a second look before anyone posts a chart, because a jump that big on a mature task is more often a leak than a breakthrough.</p>
+        <p>An eval that overlaps your training data isn't measuring the model. It's measuring its memory.</p>
         <div class="pq">
-          <div class="pq-txt">“You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.”</div>
+          <div class="pq-txt">“An eval that overlaps your training data isn't measuring the model. It's measuring its memory.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="An eval that overlaps your training data isn&#x27;t measuring the model. It&#x27;s measuring its memory." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="An eval that overlaps your training data isn&#x27;t measuring the model. It&#x27;s measuring its memory." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
       </div>
@@ -183,7 +179,7 @@
   </main>
 
   <footer>
-    <p>Composite dispatch based on documented PII exposure through LLM tracing and observability pipelines. No specific company incident referenced.</p>
+    <p>Composite dispatch based on documented train/test contamination failures in fine-tuned LLM evaluations. No specific company incident referenced.</p>
     <p style="margin-top:.5rem"><a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a></p>
   </footer>
 
@@ -197,7 +193,7 @@
 
     
     /* interactive moment: flip every row from what the dashboard said to what was true */
-    const ROWS=[{"label": "App log: prompt", "before": ["SSN [REDACTED], DOB [REDACTED]", "ok"], "after": ["SSN [REDACTED], DOB [REDACTED]", "ok"]}, {"label": "Redaction filter", "before": ["active ✓", "ok"], "after": ["active ✓ (logs only)", "warn"]}, {"label": "Trace span: llm.input", "before": ["(not inspected)", "dim"], "after": ["SSN 5██-██-1847, DOB 1979-03-██", "bad"]}, {"label": "Trace retention", "before": ["(not on data map)", "dim"], "after": ["400 days · third-party region", "bad"]}, {"label": "Spans affected", "before": ["0 known", "dim"], "after": ["~2.3M over 7 months", "bad"]}];
+    const ROWS=[{"label": "Offline eval (1,200 tickets)", "before": ["94% vs. 81% ▲", "ok"], "after": ["94% vs. 81%", "warn"]}, {"label": "Near-duplicates in training", "before": ["0 (exact match)", "ok"], "after": ["456 of 1,200 (38%)", "bad"]}, {"label": "Clean held-out eval", "before": ["not built", "dim"], "after": ["79% vs. 81% ▼", "bad"]}, {"label": "Production resolution rate", "before": ["dropping, cause unknown", "warn"], "after": ["−4 pts since v3 shipped", "bad"]}];
     const im=document.getElementById('im');
     function setState(after){
       ROWS.forEach((r,i)=>{
@@ -215,8 +211,8 @@
 
 
     /* share */
-    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html';
-    const ART_TITLE="The Trace That Kept Everything";
+    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-eval-that-had-seen-the-answers.html';
+    const ART_TITLE="The Eval That Had Seen the Answers";
     document.querySelectorAll('.shr').forEach(b=>b.addEventListener('click',()=>{
       const u=b.dataset.net==='x'
         ?'https://twitter.com/intent/tweet?text='+encodeURIComponent('"'+b.dataset.quote+'" — '+ART_TITLE+' '+ART_URL)

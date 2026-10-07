@@ -196,6 +196,7 @@
       pr.style.width=(max>0?Math.min(h.scrollTop/max*100,100):0)+'%';
     });
 
+    
     /* interactive moment: flip every row from what the dashboard said to what was true */
     const ROWS=[{"label": "Document", "before": ["MSA_Vendor_Final.pdf · 58 pages", "ok"], "after": ["MSA_Vendor_Final.pdf · 58 pages", "ok"]}, {"label": "Status", "before": ["200 OK · reviewed", "ok"], "after": ["200 OK · reviewed", "ok"]}, {"label": "Termination for convenience", "before": ["None found", "ok"], "after": ["None found (page 47 not sent)", "bad"]}, {"label": "Tokens in document", "before": ["(not shown)", "dim"], "after": ["46,900", "warn"]}, {"label": "Tokens sent to model", "before": ["(not shown)", "dim"], "after": ["32,000 · pages 1–41", "bad"]}];
     const im=document.getElementById('im');
@@ -212,6 +213,7 @@
     }
     document.getElementById('im-go').addEventListener('click',()=>setState(true));
     document.getElementById('im-rst').addEventListener('click',()=>setState(false));
+
 
     /* share */
     const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-contract-ended-at-page-41.html';

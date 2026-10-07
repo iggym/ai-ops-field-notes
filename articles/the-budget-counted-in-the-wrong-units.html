@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Trace That Kept Everything — AI Ops Field Notes</title>
-  <meta name="description" content="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.">
-  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html">
+  <title>The Budget Counted in the Wrong Units — AI Ops Field Notes</title>
+  <meta name="description" content="Averages hide languages. Your 0.4% error rate was one customer&#x27;s 31%.">
+  <link rel="canonical" href="https://iggym.github.io/ai-ops-field-notes/articles/the-budget-counted-in-the-wrong-units.html">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="AI Ops Field Notes">
-  <meta property="og:title" content="The Trace That Kept Everything">
-  <meta property="og:description" content="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.">
-  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html">
-  <meta property="article:published_time" content="2026-08-04">
+  <meta property="og:title" content="The Budget Counted in the Wrong Units">
+  <meta property="og:description" content="Averages hide languages. Your 0.4% error rate was one customer&#x27;s 31%.">
+  <meta property="og:url" content="https://iggym.github.io/ai-ops-field-notes/articles/the-budget-counted-in-the-wrong-units.html">
+  <meta property="article:published_time" content="2025-08-19">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="The Trace That Kept Everything">
-  <meta name="twitter:description" content="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The Trace That Kept Everything", "description": "You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.", "datePublished": "2026-08-04", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
+  <meta name="twitter:title" content="The Budget Counted in the Wrong Units">
+  <meta name="twitter:description" content="Averages hide languages. Your 0.4% error rate was one customer&#x27;s 31%.">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "The Budget Counted in the Wrong Units", "description": "Averages hide languages. Your 0.4% error rate was one customer's 31%.", "datePublished": "2025-08-19", "url": "https://iggym.github.io/ai-ops-field-notes/articles/the-budget-counted-in-the-wrong-units.html", "publisher": {"@type": "Organization", "name": "AI Ops Field Notes"}}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
@@ -121,61 +121,56 @@
 
   <main>
     <article>
-      <h1 class="hero-title">The Trace That Kept Everything</h1>
-      <div class="hero-meta">2026-08-04 · dispatch</div>
+      <h1 class="hero-title">The Budget Counted in the Wrong Units</h1>
+      <div class="hero-meta">2025-08-19 · dispatch</div>
 
       <div class="dispatch-body">
-        <p>The finding came from a privacy auditor, not an alert. She was walking the data map for the benefits assistant, the chatbot that helped employees with insurance claims, and asked a simple question about the tracing vendor listed under “observability”: what fields do we send them?</p>
-        <p>Nobody in the room knew. The engineering lead said “latency and token counts, mostly.” The platform engineer opened the vendor's UI to check. The first span he clicked on contained a full Social Security number.</p>
-        <p>The team had done the work on logging. A redaction filter on the application logger matched SSNs, dates of birth, policy numbers and bank details, and replaced them before anything was written. It had tests. It had been reviewed by security. The logs were clean, and the team had reasonably concluded that the system was clean.</p>
-        <p>The tracing SDK didn't go through the logger.</p>
-        <p>That sentence took the team about twenty minutes to understand and most of the next quarter to clean up.</p>
-        <div class="im" id="im" role="region" aria-label="Redaction coverage simulation">
-          <div class="im-cap">One request, two copies</div>
+        <p>The escalation came through the account team, not the pager. The company's largest customer in Japan, a manufacturer with eleven thousand employees on the internal help assistant, said the bot had become useless. One in three questions got the same reply: “I couldn't find information about that.” The answers existed. They were in the manufacturer's own knowledge base, which the assistant searched.</p>
+        <p>The platform dashboard said the assistant was fine. Error rate 0.4%, well inside the SLO. Retrieval hit rate normal. Latency normal. By every number the team reviewed each week, the assistant was healthy.</p>
+        <p>The engineer on call filtered the logs to the Japanese tenant. The error rate there was 31%. Almost all of it was one error: the provider rejecting the request with <code>400: context length exceeded</code>. The assistant's fallback path caught the 400 and returned the polite “couldn't find” message, which the dashboard counted as a handled response.</p>
+        <p>Context overflow shouldn't have been possible. The orchestration layer had a budget step that packed retrieved passages into the prompt until it hit 90% of the context window, then stopped. The engineer read the budget function. It estimated tokens as characters divided by four.</p>
+        <div class="im" id="im" role="region" aria-label="Token estimate simulation">
+          <div class="im-cap">Same help article · two languages</div>
           <div aria-live="polite">
           <div class="im-row">
-            <div class="im-l">App log: prompt</div>
-            <div class="im-r ok" id="r0">SSN [REDACTED], DOB [REDACTED]</div>
+            <div class="im-l">English article (12,000 chars)</div>
+            <div class="im-r ok" id="r0">est. 3,000 tokens</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Redaction filter</div>
-            <div class="im-r ok" id="r1">active ✓</div>
+            <div class="im-l">Japanese article (12,000 chars)</div>
+            <div class="im-r ok" id="r1">est. 3,000 tokens</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Trace span: llm.input</div>
-            <div class="im-r dim" id="r2">(not inspected)</div>
+            <div class="im-l">Context errors, all tenants</div>
+            <div class="im-r ok" id="r2">0.4%</div>
           </div>
           <div class="im-row">
-            <div class="im-l">Trace retention</div>
-            <div class="im-r dim" id="r3">(not on data map)</div>
-          </div>
-          <div class="im-row">
-            <div class="im-l">Spans affected</div>
-            <div class="im-r dim" id="r4">0 known</div>
+            <div class="im-l">Context errors, JP tenant</div>
+            <div class="im-r dim" id="r3">not segmented</div>
           </div>
           </div>
-          <div class="im-note" id="im-note">⚠ The redaction filter ran on the logging handler. The tracing SDK captured llm.input from the client call, upstream of it, and shipped it to a vendor with 400-day retention.</div>
-          <button class="im-btn" id="im-go" type="button">Open the trace span</button>
+          <div class="im-note" id="im-note">⚠ The budget used characters ÷ 4. That&#x27;s roughly right for English and badly wrong for Japanese. Overflowing requests got a 400, and the fallback said “I couldn&#x27;t find that.”</div>
+          <button class="im-btn" id="im-go" type="button">Count with the real tokenizer</button>
           <button class="im-btn" id="im-rst" type="button" style="display:none">Reset</button>
         </div>
-        <p>It had been added seven months earlier, when the team wanted per-step latency for their retrieval pipeline. The SDK's auto-instrumentation wrapped the LLM client and captured the full prompt and completion as span attributes. That is its default, and it is very useful for debugging. It captured them at the client call, upstream of the logging handler, so the redaction filter never saw them. Every prompt a user typed, including the ones where they pasted a claim form, went to the vendor verbatim.</p>
+        <p>Characters divided by four is a well-known rule of thumb for English. It is not a law of nature. For Japanese text, where a single character often maps to one or more tokens, the real count was closer to three times the estimate. The budget step thought it was packing 90% of the window. For Japanese passages it was packing about 280%.</p>
         <div class="pq">
-          <div class="pq-txt">“The logs were clean, and the team had reasonably concluded that the system was clean.”</div>
+          <div class="pq-txt">“Characters divided by four is a well-known rule of thumb for English. It is not a law of nature.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="The logs were clean, and the team had reasonably concluded that the system was clean." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="The logs were clean, and the team had reasonably concluded that the system was clean." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="Characters divided by four is a well-known rule of thumb for English. It is not a law of nature." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="Characters divided by four is a well-known rule of thumb for English. It is not a law of nature." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
-        <p>The vendor stored spans for 400 days, in a region the company's data processing agreement didn't cover. Rough count: 2.3 million spans with user content, an unknown fraction carrying identifiers. No breach in the attacker sense, but the company now had regulated health and identity data sitting in a system it had never assessed, under a retention policy it had never agreed to.</p>
-        <p>The cleanup took six weeks: a deletion request to the vendor, a written attestation back, legal review of notification obligations, and a re-run of the data protection impact assessment with tracing in scope this time.</p>
-        <p>The engineering fix was smaller and more pointed. Content capture is now off by default in the tracing config, enforced by a CI check that fails the build if it's enabled. Where engineers need prompt content to debug, it passes through the same redaction function as the logs, at the SDK's span processor, before export. The data map now lists every exporter in the process, not every vendor in the contract.</p>
-        <p>Observability tools are built to capture everything because that's what makes them useful. In an LLM system, everything includes whatever the user typed.</p>
-        <p>You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.</p>
+        <p>The Japanese tenant was the first customer with a large non-Latin knowledge base. Its traffic was about 1.3% of the total, so even a 31% failure rate inside it barely moved the global error rate. The SLO was computed across all tenants. By that definition, nothing was wrong.</p>
+        <p>The engineer who wrote the estimator had known it was approximate. The comment above it said <code># good enough for now</code>. For two years, it was. Every customer in those two years had written mostly in English.</p>
+        <p>The fix replaced the estimate with the model's actual tokenizer, run locally, with a safety margin of 5%. The budget step now fails loudly in staging if its count ever differs from the provider's reported usage by more than 10%. Error rates are segmented by tenant and by language on the main dashboard, and the SLO applies to each tenant, not only to the total. And the fallback no longer pretends a 400 is a search miss. It says that something went wrong and logs it as an error, which it is.</p>
+        <p>The customer's account manager spent a month rebuilding trust. The engineer spent an afternoon on the fix.</p>
+        <p>Averages hide languages. Your 0.4% error rate was one customer's 31%.</p>
         <div class="pq">
-          <div class="pq-txt">“You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map.”</div>
+          <div class="pq-txt">“Averages hide languages. Your 0.4% error rate was one customer's 31%.”</div>
           <div class="shr-row">
-            <button class="shr" data-net="x" data-quote="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map." aria-label="Share on X">𝕏</button>
-            <button class="shr" data-net="li" data-quote="You redacted the logs. The traces were a second copy of every prompt, and nobody had put them on the data map." aria-label="Share on LinkedIn">in</button>
+            <button class="shr" data-net="x" data-quote="Averages hide languages. Your 0.4% error rate was one customer&#x27;s 31%." aria-label="Share on X">𝕏</button>
+            <button class="shr" data-net="li" data-quote="Averages hide languages. Your 0.4% error rate was one customer&#x27;s 31%." aria-label="Share on LinkedIn">in</button>
           </div>
         </div>
       </div>
@@ -183,7 +178,7 @@
   </main>
 
   <footer>
-    <p>Composite dispatch based on documented PII exposure through LLM tracing and observability pipelines. No specific company incident referenced.</p>
+    <p>Composite dispatch based on documented token-estimation and context-overflow failures in multilingual LLM deployments. No specific company incident referenced.</p>
     <p style="margin-top:.5rem"><a href="https://iggym.github.io/ai-ops-field-notes/">← AI Ops Field Notes</a></p>
   </footer>
 
@@ -197,7 +192,7 @@
 
     
     /* interactive moment: flip every row from what the dashboard said to what was true */
-    const ROWS=[{"label": "App log: prompt", "before": ["SSN [REDACTED], DOB [REDACTED]", "ok"], "after": ["SSN [REDACTED], DOB [REDACTED]", "ok"]}, {"label": "Redaction filter", "before": ["active ✓", "ok"], "after": ["active ✓ (logs only)", "warn"]}, {"label": "Trace span: llm.input", "before": ["(not inspected)", "dim"], "after": ["SSN 5██-██-1847, DOB 1979-03-██", "bad"]}, {"label": "Trace retention", "before": ["(not on data map)", "dim"], "after": ["400 days · third-party region", "bad"]}, {"label": "Spans affected", "before": ["0 known", "dim"], "after": ["~2.3M over 7 months", "bad"]}];
+    const ROWS=[{"label": "English article (12,000 chars)", "before": ["est. 3,000 tokens", "ok"], "after": ["actual ≈ 2,900", "ok"]}, {"label": "Japanese article (12,000 chars)", "before": ["est. 3,000 tokens", "ok"], "after": ["actual ≈ 9,400", "bad"]}, {"label": "Context errors, all tenants", "before": ["0.4%", "ok"], "after": ["0.4%", "ok"]}, {"label": "Context errors, JP tenant", "before": ["not segmented", "dim"], "after": ["31%", "bad"]}];
     const im=document.getElementById('im');
     function setState(after){
       ROWS.forEach((r,i)=>{
@@ -215,8 +210,8 @@
 
 
     /* share */
-    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-trace-that-kept-everything.html';
-    const ART_TITLE="The Trace That Kept Everything";
+    const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-budget-counted-in-the-wrong-units.html';
+    const ART_TITLE="The Budget Counted in the Wrong Units";
     document.querySelectorAll('.shr').forEach(b=>b.addEventListener('click',()=>{
       const u=b.dataset.net==='x'
         ?'https://twitter.com/intent/tweet?text='+encodeURIComponent('"'+b.dataset.quote+'" — '+ART_TITLE+' '+ART_URL)

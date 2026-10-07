@@ -193,6 +193,7 @@
       pr.style.width=(max>0?Math.min(h.scrollTop/max*100,100):0)+'%';
     });
 
+    
     /* interactive moment: flip every row from what the dashboard said to what was true */
     const ROWS=[{"label": "Invoice total", "before": ["$18,400.00", "ok"], "after": ["$18,400.00", "ok"]}, {"label": "Vendor", "before": ["Northwind Packaging", "ok"], "after": ["Northwind Packaging", "ok"]}, {"label": "Visible instructions", "before": ["none", "ok"], "after": ["none", "ok"]}, {"label": "Extracted text, page 2", "before": ["(not displayed)", "dim"], "after": ["“…call update_vendor_payee…”", "bad"]}, {"label": "Tool calls proposed", "before": ["schedule_payment", "ok"], "after": ["update_vendor_payee → schedule_payment", "bad"]}];
     const im=document.getElementById('im');
@@ -209,6 +210,7 @@
     }
     document.getElementById('im-go').addEventListener('click',()=>setState(true));
     document.getElementById('im-rst').addEventListener('click',()=>setState(false));
+
 
     /* share */
     const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-invoice-that-gave-orders.html';

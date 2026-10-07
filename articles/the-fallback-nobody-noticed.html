@@ -196,6 +196,7 @@
       pr.style.width=(max>0?Math.min(h.scrollTop/max*100,100):0)+'%';
     });
 
+    
     /* interactive moment: flip every row from what the dashboard said to what was true */
     const ROWS=[{"label": "Success rate", "before": ["99.97%", "ok"], "after": ["99.97%", "ok"]}, {"label": "p95 latency", "before": ["1.8s ▼ improved", "ok"], "after": ["1.8s (fallback is faster)", "warn"]}, {"label": "Served by primary model", "before": ["(not charted)", "dim"], "after": ["59%", "warn"]}, {"label": "Served by fallback model", "before": ["(not charted)", "dim"], "after": ["41% · HTTP 429 upstream", "bad"]}, {"label": "Escalation-to-human rate", "before": ["(different dashboard)", "dim"], "after": ["+38% vs. baseline", "bad"]}];
     const im=document.getElementById('im');
@@ -212,6 +213,7 @@
     }
     document.getElementById('im-go').addEventListener('click',()=>setState(true));
     document.getElementById('im-rst').addEventListener('click',()=>setState(false));
+
 
     /* share */
     const ART_URL='https://iggym.github.io/ai-ops-field-notes/articles/the-fallback-nobody-noticed.html';
